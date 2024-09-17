@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Redirect, router } from "expo-router";
 import {
   View,
   Text,
@@ -7,15 +8,14 @@ import {
   SafeAreaView,
   Animated,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 
-const PageIndicator = ({ currentPage, totalPages }) => {
+const PageIndicator = ({ currentPage, totalPages }: any) => {
   return (
     <View className="flex flex-row space-x-1 mt-14">
       {[...Array(totalPages)].map((_, index) => (
         <View
           key={index}
-          className={`bg-lightGrey p-1 ${
+          className={`bg-white p-1 ${
             index === currentPage ? "rounded-3xl px-4" : "rounded-full"
           }`}
         />
@@ -25,7 +25,6 @@ const PageIndicator = ({ currentPage, totalPages }) => {
 };
 
 const Onboarding = () => {
-  const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const [currentPage, setCurrentPage] = useState(0);
@@ -70,7 +69,7 @@ const Onboarding = () => {
     if (currentPage < pages.length - 1) {
       setCurrentPage(currentPage + 1);
     } else {
-      navigation.navigate("MainApp");
+      router.push("/login");
     }
   };
 
