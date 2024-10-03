@@ -1,6 +1,7 @@
 import { Stack } from "expo-router/stack";
 import { useFonts } from "expo-font";
 import { Text } from "react-native";
+import React from "react";
 export default function Layout() {
   const [fontsLoaded] = useFonts({
     inter: require("../assets/fonts/Inter.ttf"),

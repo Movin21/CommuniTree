@@ -1,17 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Redirect, router } from "expo-router";
+import React, { useRef, useState } from "react";
+import { router } from "expo-router";
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
   SafeAreaView,
-  Animated,
+  ScrollView,
+  Dimensions,
 } from "react-native";
 
-const PageIndicator = ({ currentPage, totalPages }: any) => {
+const { width } = Dimensions.get("window");
+
+const PageIndicator = ({ currentPage, totalPages }) => {
   return (
-    <View className="flex flex-row space-x-1 mt-14">
+    <View className="flex flex-row space-x-1 my-4">
       {[...Array(totalPages)].map((_, index) => (
         <View
           key={index}
@@ -25,8 +28,7 @@ const PageIndicator = ({ currentPage, totalPages }: any) => {
 };
 
 const Onboarding = () => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scrollViewRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(0);
 
   const pages = [
@@ -37,36 +39,25 @@ const Onboarding = () => {
       image: require("../assets/obi1.png"),
     },
     {
-      title: "It’s your perfect home!",
+      title: "It's your perfect home!",
       description:
         "Let's explore how CommuniTree can help you connect, engage, and thrive in your residential community!",
       image: require("../assets/obi2.png"),
     },
   ];
 
-  useEffect(() => {
-    animateContent();
-  }, [currentPage]);
-
-  const animateContent = () => {
-    fadeAnim.setValue(0);
-    slideAnim.setValue(50);
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  const handleScroll = (event) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const page = Math.round(offsetX / width);
+    setCurrentPage(page);
   };
 
   const handleNext = () => {
     if (currentPage < pages.length - 1) {
+      scrollViewRef.current.scrollTo({
+        x: (currentPage + 1) * width,
+        animated: true,
+      });
       setCurrentPage(currentPage + 1);
     } else {
       router.push("/login");
@@ -75,46 +66,51 @@ const Onboarding = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <View className="items-center justify-center px-5 mt-14 mb-8">
+      <View className="items-center justify-center px-5 mt-14 ">
         <Image
           source={require("../assets/logo.png")}
           className="w-40 h-40 object-contain"
         />
-        <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }}
-        >
-          <Text className="text-3xl font-inter mt-9 text-center font-bold">
-            {pages[currentPage].title}
-          </Text>
-          <Text
-            style={{ lineHeight: 22 }}
-            className="text-center mt-6 mx-10 font-inter font-semibold text-greyColor text-lg leading-tight"
-          >
-            {pages[currentPage].description}
-          </Text>
-        </Animated.View>
-        <PageIndicator currentPage={currentPage} totalPages={pages.length} />
       </View>
-      <Animated.View
-        style={{
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        }}
-        className="mt-2 overflow-hidden rounded-t-obi"
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
       >
-        <Image
-          source={pages[currentPage].image}
-          className="w-full h-auto object-fill"
-        />
-      </Animated.View>
+        {pages.map((page, index) => (
+          <View key={index} style={{ width }}>
+            <Text className="text-3xl font-inter mt-7 text-center font-bold px-5">
+              {page.title}
+            </Text>
+            <Text
+              style={{ lineHeight: 22 }}
+              className="text-center mt-6 mx-10 font-inter font-semiBold text-greyColor text-xl leading-tight"
+            >
+              {page.description}
+            </Text>
+            <View className="items-center">
+              <PageIndicator
+                currentPage={currentPage}
+                totalPages={pages.length}
+              />
+            </View>
+            <View className="mt-10 overflow-hidden rounded-t-obi">
+              <Image
+                source={page.image}
+                style={{ width, height: 500 }}
+                resizeMode="cover"
+              />
+            </View>
+          </View>
+        ))}
+      </ScrollView>
       <TouchableOpacity
         onPress={handleNext}
-        className="bg-white py-3 px-24 rounded-full absolute bottom-8 self-center"
+        className="bg-white py-3 px-12 rounded-full absolute bottom-8 self-center w-48 text-center" // Fixed width with center alignment
       >
-        <Text className="text-black text-lg font-bold font-inter">
+        <Text className="text-black text-lg font-semibold font-inter text-center">
           {currentPage === pages.length - 1 ? "Get Started" : "Next"}
         </Text>
       </TouchableOpacity>
