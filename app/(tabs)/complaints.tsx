@@ -76,7 +76,7 @@ const complaints = () => {
         </TouchableOpacity>
 
         <TouchableOpacity className="bg-blue-500 p-4 rounded-lg items-center">
-          <Text className="text-white font-bold">Submit</Text>
+          <Text className="text-white font-bold font-inter">Submit</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
