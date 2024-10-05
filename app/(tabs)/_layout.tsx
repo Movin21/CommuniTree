@@ -1,8 +1,8 @@
 import React from "react";
 import { Tabs } from "expo-router";
-import TabBar from "../../components/TabBar";
+import TabBar from "../../components/TabBar"; // Assuming you have a custom TabBar component
 
-const _layout = () => {
+const TabsLayout = () => {
   return (
     <>
       <Tabs tabBar={(props) => <TabBar {...props} />}>
@@ -41,4 +41,4 @@ const _layout = () => {
   );
 };
 
-export default _layout;
+export default TabsLayout;
