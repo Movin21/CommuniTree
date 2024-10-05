@@ -108,11 +108,19 @@ const ReservationScreen = () => {
 
   const today = new Date().getDate();
 
-  // Function to get the day name for a specific date
+  // Function to get the full day name for a specific date
   const getDayName = (day: number) => {
     const date = new Date(2024, 9, day); // October 2024
-    const daysOfWeek = ["S", "M", "T", "W", "T", "F", "S"];
-    return daysOfWeek[date.getDay()];
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return daysOfWeek[date.getDay()]; // Return full day name
   };
 
   // Handle selecting a date
@@ -129,10 +137,11 @@ const ReservationScreen = () => {
 
   const handleNext = () => {
     if (selectedResource && selectedTimeSlot && selectedDate !== null) {
+      const formattedDate = `${selectedDate} - ${getDayName(selectedDate)}`; // Format the date
       navigation.navigate("ReservationForm", {
         resourceType: selectedResource,
-        date: String(selectedDate),
-        timeSlot: selectedTimeSlot,
+        date: formattedDate, // Pass the formatted date
+        timeSlot: selectedTimeSlot, // Pass the selected time slot
       });
     } else {
       alert("Please select a resource, date, and time slot");

@@ -12,7 +12,7 @@ import {
 
 const { width } = Dimensions.get("window");
 
-const PageIndicator = ({ currentPage, totalPages }) => {
+const PageIndicator = ({ currentPage, totalPages }: any) => {
   return (
     <View className="flex flex-row space-x-1 my-4">
       {[...Array(totalPages)].map((_, index) => (
@@ -46,7 +46,7 @@ const Onboarding = () => {
     },
   ];
 
-  const handleScroll = (event) => {
+  const handleScroll = (event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const page = Math.round(offsetX / width);
     setCurrentPage(page);

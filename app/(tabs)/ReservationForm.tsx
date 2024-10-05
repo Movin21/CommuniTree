@@ -10,15 +10,71 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+
+// Define the types for route parameters
+type RootStackParamList = {
+  ReservationForm: {
+    resourceType: string;
+    date: string;
+    timeSlot: string;
+  };
+  reviewDetail: {
+    resourceType: string;
+    date: string;
+    timeSlot: string;
+    fullName: string;
+    residenceNumber: string;
+    contactNumber: string;
+    email: string;
+    additionalDetails: string;
+  };
+};
+
+type ReservationFormRouteProp = RouteProp<
+  RootStackParamList,
+  "ReservationForm"
+>;
 
 const ReservationForm = () => {
+  const [fullName, setFullName] = useState("");
+  const [residenceNumber, setResidenceNumber] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [additionalDetails, setAdditionalDetails] = useState("");
   const [isAgreed, setIsAgreed] = useState(false);
+
   const navigation = useNavigation();
+  const route = useRoute<ReservationFormRouteProp>(); // Get the data passed from the previous screen
+
+  // Get the passed details from route.params
+  const { resourceType, date, timeSlot } = route.params;
 
   const handleBookPress = () => {
     if (isAgreed) {
-      // Handle form submission
+      // Log all details in the console before navigation
+      console.log({
+        resourceType,
+        date,
+        timeSlot, // Ensure this is logged
+        fullName,
+        residenceNumber,
+        contactNumber,
+        email,
+        additionalDetails,
+      });
+
+      // Navigate to the reviewDetail screen and pass all the form and previous screen data
+      navigation.navigate("reviewDetail", {
+        resourceType,
+        date,
+        timeSlot, // Pass the time slot to the next screen
+        fullName,
+        residenceNumber,
+        contactNumber,
+        email,
+        additionalDetails,
+      });
     } else {
       alert("You must agree to the Terms of Service.");
     }
@@ -47,6 +103,8 @@ const ReservationForm = () => {
               style={styles.input}
               placeholder="Ex: Yasas Lakmina"
               placeholderTextColor="#C4C4C4"
+              value={fullName}
+              onChangeText={setFullName}
             />
 
             {/* Residence Number Field */}
@@ -55,6 +113,8 @@ const ReservationForm = () => {
               style={styles.input}
               placeholder="RX#######"
               placeholderTextColor="#C4C4C4"
+              value={residenceNumber}
+              onChangeText={setResidenceNumber}
             />
 
             {/* Contact Number Field */}
@@ -64,6 +124,8 @@ const ReservationForm = () => {
               placeholder="+94xxxxxxxxx"
               placeholderTextColor="#C4C4C4"
               keyboardType="phone-pad"
+              value={contactNumber}
+              onChangeText={setContactNumber}
             />
 
             {/* Email Field */}
@@ -73,6 +135,8 @@ const ReservationForm = () => {
               placeholder="yasas123@example.com"
               placeholderTextColor="#C4C4C4"
               keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
             />
 
             {/* Additional Details Field */}
@@ -82,6 +146,8 @@ const ReservationForm = () => {
               placeholder="Enter Your Note Here..."
               placeholderTextColor="#C4C4C4"
               multiline
+              value={additionalDetails}
+              onChangeText={setAdditionalDetails}
             />
 
             {/* Terms and Conditions */}
