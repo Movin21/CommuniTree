@@ -87,7 +87,7 @@ const LoginForm = () => {
           <StyledText className="text-xs font-inter font-semibold text-greyColor mb-2 tracking-widest">
             PASSWORD
           </StyledText>
-          <StyledView className="flex-row items-center border border-white rounded-md bg-gray-100">
+          <StyledView className="flex-row items-centerborder border-white rounded-md bg-gray-100">
             <StyledTextInput
               className="flex-1 p-2 text-lg font-inter"
               value={password}
