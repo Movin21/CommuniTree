@@ -116,9 +116,11 @@ const LoginForm = () => {
         <View className="mb-5">
           <Text className="text-xs font-inter font-semibold text-greyColor mb-2 tracking-widest">
             PASSWORD
+
           </Text>
           <View className="flex-row items-center border border-white rounded-md bg-gray-100">
             <TextInput
+
               className="flex-1 p-2 text-lg font-inter"
               value={password}
               onChangeText={setPassword}
