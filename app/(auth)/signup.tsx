@@ -235,15 +235,16 @@ const SignUpForm = () => {
               </Link>
             </Text>
           </View>
-
-          <Text className="text-sm text-center mt-14 text-gray-600 font-inter">
-            By Submitting, I agree to communitree{"\n"}
-            <Link href="/TermsOfServiceScreen">
-              <Text className="text-primaryColor underline">
-                Terms of Services
-              </Text>
-            </Link>
-          </Text>
+          <View>
+            <Text className="text-sm text-center mt-14 text-gray-600 font-inter">
+              By Submitting, I agree to communitree{"\n"}
+              <Link href="/TermsOfServiceScreen">
+                <Text className="text-primaryColor underline">
+                  Terms of Services
+                </Text>
+              </Link>
+            </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
       <CustomDropdown />
