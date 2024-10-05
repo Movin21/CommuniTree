@@ -8,87 +8,75 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { styled } from "nativewind";
-import { router } from "expo-router";
-
-const StyledSafeAreaView = styled(SafeAreaView);
-const StyledView = styled(View);
-const StyledText = styled(Text);
-const StyledTextInput = styled(TextInput);
-const StyledTouchableOpacity = styled(TouchableOpacity);
-const StyledImage = styled(Image);
-const StyledKeyboardAvoidingView = styled(KeyboardAvoidingView);
+import { Link, router } from "expo-router";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [residenceNumber, setResidenceNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  const handleLogin = () => {
-    console.log("Login attempted with:", residenceNumber, password);
-
-    // Check if 'residenceNumber' contains 'ad'
-    if (residenceNumber.toLowerCase().includes("ad")) {
+  const handleLogin = async () => {
+    if (email.toLowerCase().includes("ad")) {
       // Navigate to NewScreen if 'ad' is found
       router.push("/adminDashboard"); // Navigates to the new page
     } else {
       router.push("/(tabs)/home"); // Navigates to the new page
     }
   };
-
   return (
-    <StyledSafeAreaView className="flex-1 bg-white">
-      <StyledKeyboardAvoidingView
+    <SafeAreaView className="flex-1 bg-white">
+      <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1 justify-start px-5 pt-16"
       >
-        <StyledView className="flex-row justify-between items-center relative">
-          <StyledImage
-            source={require("../../assets/logo.png")} // Update path as needed
-            className="w-40 h-40 "
+        <View className="flex-row justify-between items-center relative">
+          <Image
+            source={require("../../assets/logo.png")}
+            className="w-40 h-40"
           />
-          <StyledTouchableOpacity className="absolute top-0 right-0">
-            <StyledText className="text-primaryColor font-inter font-bold text-2xl">
+          <TouchableOpacity className="absolute top-0 right-0">
+            <Text className="text-primaryColor font-inter font-bold text-2xl">
               Login
-            </StyledText>
-          </StyledTouchableOpacity>
-        </StyledView>
-        <StyledView className="items-start mb-12">
-          <StyledText className="text-2xl font-inter font-bold tracking-wider">
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View className="items-start mb-12">
+          <Text className="text-2xl font-inter font-bold tracking-wider">
             Welcome to
-          </StyledText>
-          <StyledText className="text-4xl font-inter font-bold mb-7 tracking-wider">
+          </Text>
+          <Text className="text-4xl font-inter font-bold mb-7 tracking-wider">
             CommuniTree!
-          </StyledText>
-        </StyledView>
+          </Text>
+        </View>
 
-        <StyledView className="mb-5">
-          <StyledText className="text-xs font-inter font-semibold text-greyColor mb-2 tracking-widest">
-            RESIDENCE NUMBER
-          </StyledText>
-          <StyledTextInput
+        <View className="mb-5">
+          <Text className="text-xs font-inter font-semibold text-greyColor mb-2 tracking-widest">
+            EMAIL
+          </Text>
+          <TextInput
             className="border shadow-2xl border-white rounded-md p-2 text-lg font-inter bg-gray-100"
-            value={residenceNumber}
-            onChangeText={setResidenceNumber}
-            placeholder="1098/2A/07BC"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="email@example.com"
             placeholderTextColor="#7D7F88"
-            keyboardType="default"
-            autoCapitalize="characters"
-            autoCorrect={false}
-            editable={true}
+            keyboardType="email-address"
+            editable={!isLoading}
           />
-        </StyledView>
+        </View>
 
-        <StyledView className="mb-5">
-          <StyledText className="text-xs font-inter font-semibold text-greyColor mb-2 tracking-widest">
+        <View className="mb-5">
+          <Text className="text-xs font-inter font-semibold text-greyColor mb-2 tracking-widest">
             PASSWORD
-          </StyledText>
-          <StyledView className="flex-row items-center border border-white rounded-md bg-gray-100">
-            <StyledTextInput
+          </Text>
+          <View className="flex-row items-center border border-white rounded-md bg-gray-100">
+            <TextInput
               className="flex-1 p-2 text-lg font-inter"
               value={password}
               onChangeText={setPassword}
@@ -96,45 +84,51 @@ const LoginForm = () => {
               placeholderTextColor="#7D7F88"
               autoCapitalize="none"
               autoCorrect={false}
-              editable={true}
+              editable={!isLoading}
             />
-            <StyledTouchableOpacity
+            <TouchableOpacity
               onPress={togglePasswordVisibility}
               className="p-2"
+              disabled={isLoading}
             >
               <Feather
                 name={showPassword ? "eye-off" : "eye"}
                 size={24}
                 color="black"
               />
-            </StyledTouchableOpacity>
-          </StyledView>
-          <StyledText className="text-md text-black font-semibold font-inter mt-2">
-            Don't you have an account?
-            <StyledText className="text-blue-600 font-inter">
-              Sign In
-            </StyledText>
-          </StyledText>
-        </StyledView>
+            </TouchableOpacity>
+          </View>
+          <Text className="text-md text-black font-semibold font-inter mt-2">
+            Don't have an account?{" "}
+            <Link href="/signUp">
+              <Text className="text-blue-600 font-inter">Sign Up</Text>
+            </Link>
+          </Text>
+        </View>
 
-        <StyledTouchableOpacity
-          className="bg-blue-800 py-2 px-2 rounded-md items-center mt-3"
+        <TouchableOpacity
+          className={`bg-blue-800 py-2 px-2 rounded-md items-center mt-3 ${
+            isLoading ? "opacity-50" : ""
+          }`}
           onPress={handleLogin}
+          disabled={isLoading}
         >
-          <StyledText className="text-white text-lg font-inter font-semibold">
-            Log In
-          </StyledText>
-        </StyledTouchableOpacity>
+          <Text className="text-white text-lg font-interfont-semibold">
+            {isLoading ? "Logging in..." : "Log In"}
+          </Text>
+        </TouchableOpacity>
 
-        <StyledView className="items-center mt-5">
-          <StyledTouchableOpacity>
-            <StyledText className="text-greyColor text-sm font-inter">
-              Forgot Password?
-            </StyledText>
-          </StyledTouchableOpacity>
-        </StyledView>
-      </StyledKeyboardAvoidingView>
-    </StyledSafeAreaView>
+        <View className="items-center mt-5">
+          <TouchableOpacity>
+            <Link href="/forgotPassword">
+              <Text className="text-greyColor underline text-sm font-inter">
+                Forgot Password?
+              </Text>
+            </Link>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

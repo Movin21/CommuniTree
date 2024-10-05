@@ -108,7 +108,7 @@ const Onboarding = () => {
       </ScrollView>
       <TouchableOpacity
         onPress={handleNext}
-        className="bg-white py-3 px-12 rounded-full absolute bottom-8 self-center w-48 text-center" // Fixed width with center alignment
+        className="bg-white py-3 px-14 rounded-full absolute bottom-8 self-center w-50 text-center" // Fixed width with center alignment
       >
         <Text className="text-black text-lg font-semibold font-inter text-center">
           {currentPage === pages.length - 1 ? "Get Started" : "Next"}
