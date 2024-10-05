@@ -1,7 +1,6 @@
 import React from "react";
 import { Stack } from "expo-router/stack";
 import { useFonts } from "expo-font";
-import { Text } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 
 // Keep the splash screen visible while we fetch resources
@@ -10,6 +9,7 @@ SplashScreen.preventAutoHideAsync();
 export default function Layout() {
   const [fontsLoaded] = useFonts({
     Inter: require("../assets/fonts/Inter.ttf"),
+    Karla: require("../assets/fonts/Karla.ttf"),
   });
 
   React.useEffect(() => {

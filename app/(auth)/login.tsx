@@ -18,6 +18,7 @@ import {
   checkSession,
   deleteCurrentSession,
 } from "../../lib/appwrite";
+import { Models } from "react-native-appwrite";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,28 +27,15 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  useEffect(() => {
-    checkExistingSession();
-  }, []);
-
-  const checkExistingSession = async () => {
-    try {
-      const session = await checkSession();
-      if (session) {
-        // Session exists, navigate to appropriate screen
-        const user = await getCurrentUser();
-        navigateUser(user);
+  const navigateUser = (user: Models.User<Models.Preferences>) => {
+    if (user && user.email) {
+      if (user.email.toLowerCase().includes("ad")) {
+        router.replace("/adminDashboard");
+      } else {
+        router.replace("/(tabs)/home");
       }
-    } catch (error) {
-      console.error("Session check error:", error);
-    }
-  };
-
-  const navigateUser = (user) => {
-    if (user.email.toLowerCase().includes("ad")) {
-      router.push("/adminDashboard");
     } else {
-      router.push("/(tabs)/home");
+      console.error("Invalid user object:", user);
     }
   };
 
@@ -59,14 +47,11 @@ const LoginForm = () => {
 
     setIsLoading(true);
     try {
-      // Check for existing session
       const existingSession = await checkSession();
       if (existingSession) {
-        // Delete the existing session before creating a new one
         await deleteCurrentSession();
       }
 
-      // Now proceed with login
       const session = await logIn(email, password);
       const user = await getCurrentUser();
 
@@ -157,7 +142,7 @@ const LoginForm = () => {
           </View>
           <Text className="text-md text-black font-semibold font-inter mt-2">
             Don't have an account?{" "}
-            <Link href="/signUp">
+            <Link href="/signup">
               <Text className="text-blue-600 font-inter">Sign Up</Text>
             </Link>
           </Text>
@@ -175,7 +160,15 @@ const LoginForm = () => {
           </Text>
         </TouchableOpacity>
 
-        {/* Rest of the component remains the same */}
+        <View className="items-center mt-5">
+          <TouchableOpacity>
+            <Link href="/forgotPassword">
+              <Text className="text-greyColor underline text-sm font-inter">
+                Forgot Password?
+              </Text>
+            </Link>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
