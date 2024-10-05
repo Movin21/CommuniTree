@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,46 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
+import { database, appwriteConfig, Query ,Models} from '../../lib/appwrite';
+
+NativeWindStyleSheet.setOutput({
+  default: "native",
+});
+
+interface Complaint {
+  firstname: string;
+  issuetitle: string;
+  $id: string;
+}
 const AdminDashboard = () => {
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+
+  useEffect(() => {
+    fetchComplaints();
+  }, []);
+
+  const fetchComplaints = async () => {
+    try {
+      const response = await database.listDocuments<Models.Document>(
+        appwriteConfig.databaseId,
+        appwriteConfig.issueCollectionId,
+        [
+          Query.orderDesc('$createdAt'),
+          Query.limit(10)
+        ]
+      );
+      
+      const mappedComplaints: Complaint[] = response.documents.map(doc => ({
+        firstname: doc.firstname as string,
+        issuetitle: doc.issuetitle as string,
+        $id: doc.$id
+      }));
+      
+      setComplaints(mappedComplaints);
+    } catch (error) {
+      console.error('Error fetching complaints:', error);
+    }
+  };
   return (
     <View className="flex-1" style={{ backgroundColor: "#F9F9F9" }}>
       <StatusBar style="auto" />
@@ -25,7 +64,7 @@ const AdminDashboard = () => {
               <Text className="mt-2 text-center font-inter">Manage Reservations</Text>
             </View>
           </View>
-
+          
           <View className="mb-6">
             <Text className="text-xl font-bold mb-2 font-inter">Complaints</Text>
             <View className="bg-white rounded-lg shadow-md">
@@ -33,23 +72,18 @@ const AdminDashboard = () => {
                 <Text className="font-bold flex-1 font-inter">Tenant</Text>
                 <Text className="font-bold flex-1 font-inter">Complaints</Text>
               </View>
-              {[
-                { tenant: "Ramesh D.", complaint: "Water tank leackage..." },
-                { tenant: "Cabin K.", complaint: "Elivator shaking ..." },
-                { tenant: "Tylor S.", complaint: "Parking area is ..." },
-                { tenant: "Micheal J.", complaint: "No water since mon..." },
-              ].map((item, index) => (
+              {complaints.map((item) => (
                 <View
-                  key={index}
+                  key={item.$id}
                   className="flex-row border-b border-gray-200 py-2 px-4"
                 >
-                  <Text className="flex-1">{item.tenant}</Text>
-                  <Text className="flex-1 text-gray-600">{item.complaint}</Text>
+                  <Text className="flex-1">{item.firstname}</Text>
+                  <Text className="flex-1 text-gray-600">{item.issuetitle}</Text>
                 </View>
               ))}
             </View>
           </View>
-
+          
           <View>
             <Text className="text-xl font-bold mb-2 font-inter">Interruption Alert</Text>
             <View className="bg-gray-100 rounded-lg p-4">

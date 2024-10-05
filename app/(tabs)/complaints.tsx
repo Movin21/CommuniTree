@@ -51,7 +51,7 @@ const complaints = () => {
         
         }
       );
-      console.log("Issue submitted successfully:", response);
+      console.log("Issue submitted successfully");
       Alert.alert("Success", "Your issue has been submitted successfully!");
       // Reset form after successful submission
       setFormData({
