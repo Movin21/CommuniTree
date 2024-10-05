@@ -141,7 +141,7 @@ const LoginForm = () => {
             </TouchableOpacity>
           </View>
           <Text className="text-md text-black font-semibold font-inter mt-2">
-            Don't have an account?{" "}
+            Don't have an account?
             <Link href="/signup">
               <Text className="text-blue-600 font-inter">Sign Up</Text>
             </Link>
