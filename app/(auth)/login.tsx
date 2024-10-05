@@ -17,6 +17,7 @@ import {
   getCurrentUser,
   checkSession,
   deleteCurrentSession,
+  resetPassword,
 } from "../../lib/appwrite";
 import { Models } from "react-native-appwrite";
 
@@ -26,7 +27,29 @@ const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const handleResetPassword = async () => {
+    if (!email) {
+      Alert.alert("Error", "Please enter your email address.");
+      return;
+    }
 
+    setIsLoading(true);
+    try {
+      await resetPassword(email);
+      Alert.alert(
+        "Password Reset",
+        "If an account exists for this email, you will receive a password reset link."
+      );
+    } catch (error) {
+      console.error("Password reset error:", error);
+      Alert.alert(
+        "Password Reset Failed",
+        "An error occurred while attempting to reset your password. Please try again later."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const navigateUser = (user: Models.User<Models.Preferences>) => {
     if (user && user.email) {
       if (user.email.toLowerCase().includes("ad")) {
@@ -116,11 +139,9 @@ const LoginForm = () => {
         <View className="mb-5">
           <Text className="text-xs font-inter font-semibold text-greyColor mb-2 tracking-widest">
             PASSWORD
-
           </Text>
           <View className="flex-row items-center border border-white rounded-md bg-gray-100">
             <TextInput
-
               className="flex-1 p-2 text-lg font-inter"
               value={password}
               onChangeText={setPassword}
@@ -163,12 +184,10 @@ const LoginForm = () => {
         </TouchableOpacity>
 
         <View className="items-center mt-5">
-          <TouchableOpacity>
-            <Link href="/forgotPassword">
-              <Text className="text-greyColor underline text-sm font-inter">
-                Forgot Password?
-              </Text>
-            </Link>
+          <TouchableOpacity onPress={handleResetPassword} disabled={isLoading}>
+            <Text className="text-greyColor underline text-sm font-inter">
+              Forgot Password?
+            </Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
