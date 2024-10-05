@@ -75,7 +75,7 @@ const complaints = () => {
           <Text className="text-blue-500">Add Photos</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="bg-blue-500 p-4 rounded-lg items-center">
+        <TouchableOpacity className="bg-primaryColor p-4 rounded-lg items-center">
           <Text className="text-white font-bold font-inter">Submit</Text>
         </TouchableOpacity>
       </View>

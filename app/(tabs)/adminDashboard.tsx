@@ -77,7 +77,7 @@ const AdminDashboard = () => {
                   multiline
                 />
               </View>
-              <TouchableOpacity className="bg-blue-500 p-2  rounded-lg items-center">
+              <TouchableOpacity className="bg-primaryColor p-2  rounded-lg items-center">
                 <Text className="text-white font-bold font-inter">SEND</Text>
               </TouchableOpacity>
             </View>
