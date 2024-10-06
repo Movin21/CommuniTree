@@ -4,7 +4,7 @@ import ColorList from "../../components/ColorList";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
-import { database, appwriteConfig, Query, Models } from "../../lib/appwrite";
+import {fetchInterruptionAlerts  } from "../../lib/appwrite";
 
 NativeWindStyleSheet.setOutput({
   default: "native",
@@ -15,35 +15,20 @@ interface InterruptionAlert {
   alertdescription: string;
 }
 const Home = () => {
-  const [interruptionAlerts, setInterruptionAlerts] = useState<
-    InterruptionAlert[]
-  >([]);
+  const [interruptionAlerts, setInterruptionAlerts] = useState<InterruptionAlert[]>([]);
 
   useEffect(() => {
-    fetchInterruptionAlerts();
+    const getInterruptionAlerts = async () => {
+      try {
+        const alerts = await fetchInterruptionAlerts();
+        setInterruptionAlerts(alerts);
+      } catch (error) {
+        console.error("Error fetching interruption alerts:", error);
+      }
+    };
+
+    getInterruptionAlerts();
   }, []);
-
-  const fetchInterruptionAlerts = async () => {
-    try {
-      const response = await database.listDocuments<Models.Document>(
-        appwriteConfig.databaseId,
-        appwriteConfig.interruptionCollectionId,
-        [Query.orderDesc("$createdAt"), Query.limit(4)]
-      );
-
-      const mappedAlerts: InterruptionAlert[] = response.documents.map(
-        (doc) => ({
-          $id: doc.$id,
-          id: doc.id as string,
-          alertdescription: doc.alertdescription as string,
-        })
-      );
-
-      setInterruptionAlerts(mappedAlerts);
-    } catch (error) {
-      console.error("Error fetching interruption alerts:", error);
-    }
-  };
 
   const getSeverityColor = (index: number) => {
     const colors = [

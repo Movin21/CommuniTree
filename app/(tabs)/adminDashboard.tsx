@@ -10,7 +10,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
-import { database, appwriteConfig, Query ,Models,ID } from '../../lib/appwrite';
+import { fetchComplaints, createInterruptionAlert } from "../../lib/appwrite";
 
 NativeWindStyleSheet.setOutput({
   default: "native",
@@ -27,32 +27,17 @@ const AdminDashboard = () => {
   const [alertdescription, setalertdescription] = useState("");
 
   useEffect(() => {
-    fetchComplaints();
+    const getComplaints = async () => {
+      try {
+        const fetchedComplaints = await fetchComplaints();
+        setComplaints(fetchedComplaints);
+      } catch (error) {
+        console.error('Error fetching complaints:', error);
+      }
+    };
+
+    getComplaints();
   }, []);
-
-  const fetchComplaints = async () => {
-    try {
-      const response = await database.listDocuments<Models.Document>(
-        appwriteConfig.databaseId,
-        appwriteConfig.issueCollectionId,
-        [
-          Query.orderDesc('$createdAt'),
-          Query.limit(10)
-        ]
-      );
-      
-      const mappedComplaints: Complaint[] = response.documents.map(doc => ({
-        firstname: doc.firstname as string,
-        issuetitle: doc.issuetitle as string,
-        $id: doc.$id
-      }));
-      
-      setComplaints(mappedComplaints);
-    } catch (error) {
-      console.error('Error fetching complaints:', error);
-    }
-  };
-
   const handleSendInterruption = async () => {
     if (!id || !alertdescription) {
       Alert.alert("Error", "Please fill in all fields");
@@ -60,27 +45,15 @@ const AdminDashboard = () => {
     }
 
     try {
-      const response = await database.createDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.interruptionCollectionId,
-        ID.unique(),
-        {
-          id: id,
-          alertdescription: alertdescription,
-        }
-      );
-
-      console.log("Interruption alert sent successfully:");
+      await createInterruptionAlert(id, alertdescription);
       Alert.alert("Success", "Interruption alert sent successfully");
-
-      // Clear the form
       setid("");
       setalertdescription("");
     } catch (error) {
-      console.error("Error sending interruption alert:", error);
       Alert.alert("Error", "Failed to send interruption alert");
     }
   };
+
 
   return (
     <View className="flex-1" style={{ backgroundColor: "#F9F9F9" }}>

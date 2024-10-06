@@ -12,7 +12,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
-import { database, appwriteConfig, ID } from "../../lib/appwrite";
+import { createComplaint } from "../../lib/appwrite";
 NativeWindStyleSheet.setOutput({
   default: "native",
 });
@@ -35,23 +35,7 @@ const complaints = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await database.createDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.issueCollectionId,
-        ID.unique(),
-        {
-          firstname: formData.firstname,
-          lastname: formData.lastname,
-          phone: formData.phone,
-          email: formData.email,
-          issuetitle: formData.issuetitle,
-          description: formData.description,
-          location: formData.location,
-          contact: formData.contact,
-        
-        }
-      );
-      console.log("Issue submitted successfully");
+      await createComplaint(formData);
       Alert.alert("Success", "Your issue has been submitted successfully!");
       // Reset form after successful submission
       setFormData({
@@ -65,7 +49,6 @@ const complaints = () => {
         contact: "",
       });
     } catch (error) {
-      console.error("Error submitting issue:", error);
       Alert.alert(
         "Error",
         "There was an error submitting your issue. Please try again."
