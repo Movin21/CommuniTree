@@ -9,6 +9,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 
@@ -36,6 +37,9 @@ type ReservationFormRouteProp = RouteProp<
   "ReservationForm"
 >;
 
+// Define the type for navigation
+type ReservationFormNavigationProp = any; // Use `any` if you're unsure of the full navigation structure, or replace with a proper type if needed
+
 const ReservationForm = () => {
   const [fullName, setFullName] = useState("");
   const [residenceNumber, setResidenceNumber] = useState("");
@@ -44,14 +48,39 @@ const ReservationForm = () => {
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [isAgreed, setIsAgreed] = useState(false);
 
-  const navigation = useNavigation();
+  // Fix typing for navigation and route
+  const navigation = useNavigation<ReservationFormNavigationProp>();
   const route = useRoute<ReservationFormRouteProp>(); // Get the data passed from the previous screen
 
   // Get the passed details from route.params
   const { resourceType, date, timeSlot } = route.params;
 
+  const validateInputs = () => {
+    // Check if any of the required fields are empty
+    if (
+      !fullName ||
+      !residenceNumber ||
+      !contactNumber ||
+      !email ||
+      !additionalDetails
+    ) {
+      Alert.alert("Validation Error", "Please fill out all the fields.");
+      return false;
+    }
+    // Check if the user has agreed to the terms
+    if (!isAgreed) {
+      Alert.alert(
+        "Terms of Service",
+        "You must agree to the Terms of Service to proceed."
+      );
+      return false;
+    }
+    return true;
+  };
+
   const handleBookPress = () => {
-    if (isAgreed) {
+    // Validate input fields
+    if (validateInputs()) {
       // Log all details in the console before navigation
       console.log({
         resourceType,
@@ -75,8 +104,6 @@ const ReservationForm = () => {
         email,
         additionalDetails,
       });
-    } else {
-      alert("You must agree to the Terms of Service.");
     }
   };
 
@@ -174,7 +201,6 @@ const ReservationForm = () => {
             <TouchableOpacity
               style={[styles.nextButton, !isAgreed && styles.disabledButton]} // Grays out if checkbox is unchecked
               onPress={handleBookPress}
-              disabled={!isAgreed} // Button disabled if checkbox isn't checked
             >
               <Text style={styles.nextButtonText}>Book</Text>
             </TouchableOpacity>

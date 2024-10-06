@@ -290,6 +290,7 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   searchWrapper: {
+    marginTop: 20,
     position: "relative",
     marginBottom: 20,
   },
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#d3d3d3",
   },
   dayName: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#888",
     marginBottom: 6,
   },
