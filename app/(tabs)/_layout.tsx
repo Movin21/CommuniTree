@@ -15,7 +15,7 @@ const TabsLayout: React.FC = () => {
     headerTitleStyle: {
       fontFamily: "Inter",
       fontSize: 16,
-      fontWeight: "600",
+      fontWeight: "800",
       textAlign: "center",
     },
     headerTitleAlign: "center",
@@ -64,7 +64,7 @@ const TabsLayout: React.FC = () => {
       <Tabs.Screen
         name="calendar"
         options={{
-          title: "Calendar",
+          title: "Events",
           ...commonHeaderOptions,
         }}
       />
