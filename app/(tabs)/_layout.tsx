@@ -1,4 +1,9 @@
 import React from "react";
+import { Tabs } from "expo-router";
+import TabBar from "../../components/TabBar"; // Assuming you have a custom TabBar component
+
+const TabsLayout = () => {
+
 import { Tabs, useRouter } from "expo-router";
 import TabBar from "../../components/TabBar";
 import { TouchableOpacity } from "react-native";
@@ -36,7 +41,6 @@ const _layout: React.FC = () => {
     ),
     headerShadowVisible: false,
   };
-
   return (
     <>
       <Tabs tabBar={(props) => <TabBar {...props} />}>
@@ -80,4 +84,4 @@ const _layout: React.FC = () => {
   );
 };
 
-export default _layout;
+export default TabsLayout;

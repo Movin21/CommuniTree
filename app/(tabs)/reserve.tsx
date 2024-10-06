@@ -9,11 +9,11 @@ import {
   Image,
   SafeAreaView,
   StatusBar,
-  Animated,
-  Easing,
 } from "react-native";
-import { useNavigation, StackNavigationProp } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack"; // Correct navigation type import
 import { FontAwesome } from "@expo/vector-icons";
+import * as Animatable from "react-native-animatable"; // Importing Animatable for animations
 
 // Define the ParamList for the stack navigator
 type RootStackParamList = {
@@ -51,6 +51,25 @@ const fetchTimeSlotsForDate = async (date: string) => {
   });
 };
 
+// Animations for zooming in and zooming out
+const zoomIn = {
+  0: {
+    scale: 0.9,
+  },
+  1: {
+    scale: 1,
+  },
+};
+
+const zoomOut = {
+  0: {
+    scale: 1,
+  },
+  1: {
+    scale: 0.9,
+  },
+};
+
 const ReservationScreen = () => {
   const [selectedResource, setSelectedResource] = useState<string | null>(
     "Gym"
@@ -61,11 +80,6 @@ const ReservationScreen = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [isFocused, setIsFocused] = useState(false);
-
-  // Animation values for scale and translationY
-  const animatedScale = useState(new Animated.Value(1))[0]; // For image scale animation
-  const animatedTranslateY = useState(new Animated.Value(0))[0]; // For vertical movement
-
   const navigation = useNavigation<ReservationScreenNavigationProp>();
 
   const resourceTypes = [
@@ -94,11 +108,19 @@ const ReservationScreen = () => {
 
   const today = new Date().getDate();
 
-  // Function to get the day name for a specific date
+  // Function to get the full day name for a specific date
   const getDayName = (day: number) => {
     const date = new Date(2024, 9, day); // October 2024
-    const daysOfWeek = ["S", "M", "T", "W", "T", "F", "S"];
-    return daysOfWeek[date.getDay()];
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return daysOfWeek[date.getDay()]; // Return full day name
   };
 
   // Handle selecting a date
@@ -108,51 +130,18 @@ const ReservationScreen = () => {
     setTimeSlots(slots);
   };
 
-  // Handle resource selection with animation
+  // Handle resource selection
   const handleResourceSelect = (resourceName: string) => {
-    if (resourceName !== selectedResource) {
-      Animated.parallel([
-        // Scale the card
-        Animated.timing(animatedScale, {
-          toValue: 1.05, // Scale to 1.05x size for smoother transition
-          duration: 400,
-          easing: Easing.out(Easing.ease), // Smoother easing
-          useNativeDriver: true,
-        }),
-        // Move the card down
-        Animated.timing(animatedTranslateY, {
-          toValue: 15, // Move down by 15 pixels
-          duration: 400,
-          easing: Easing.out(Easing.ease), // Smoother easing
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setSelectedResource(resourceName);
-        // Reset the scale and position after selection
-        Animated.parallel([
-          Animated.timing(animatedScale, {
-            toValue: 1, // Reset to original size
-            duration: 300,
-            easing: Easing.inOut(Easing.ease), // Smooth reset
-            useNativeDriver: true,
-          }),
-          Animated.timing(animatedTranslateY, {
-            toValue: 0, // Reset translation
-            duration: 300,
-            easing: Easing.inOut(Easing.ease), // Smooth reset
-            useNativeDriver: true,
-          }),
-        ]).start();
-      });
-    }
+    setSelectedResource(resourceName);
   };
 
   const handleNext = () => {
     if (selectedResource && selectedTimeSlot && selectedDate !== null) {
+      const formattedDate = `${selectedDate} - ${getDayName(selectedDate)}`; // Format the date
       navigation.navigate("ReservationForm", {
         resourceType: selectedResource,
-        date: String(selectedDate),
-        timeSlot: selectedTimeSlot,
+        date: formattedDate, // Pass the formatted date
+        timeSlot: selectedTimeSlot, // Pass the selected time slot
       });
     } else {
       alert("Please select a resource, date, and time slot");
@@ -197,30 +186,14 @@ const ReservationScreen = () => {
               onPress={() => handleResourceSelect(resource?.name || "")}
               style={styles.resourceItem}
             >
-              <Animated.View
-                style={[
-                  styles.resourceImageWrapper,
-                  selectedResource === resource.name && styles.selectedResource,
-                  {
-                    transform: [
-                      {
-                        scale:
-                          selectedResource === resource.name
-                            ? animatedScale
-                            : 1,
-                      },
-                      {
-                        translateY:
-                          selectedResource === resource.name
-                            ? animatedTranslateY
-                            : 0,
-                      },
-                    ],
-                  }, // Apply scale and translation animation
-                ]}
+              <Animatable.View
+                animation={
+                  selectedResource === resource.name ? zoomIn : zoomOut
+                }
+                duration={500}
               >
                 <Image source={resource.image} style={styles.resourceImage} />
-              </Animated.View>
+              </Animatable.View>
               <Text style={styles.resourceText}>{resource.name}</Text>
               {selectedResource === resource.name && (
                 <View style={styles.activeLine} />
@@ -317,6 +290,7 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   searchWrapper: {
+    marginTop: 20,
     position: "relative",
     marginBottom: 20,
   },
@@ -350,23 +324,24 @@ const styles = StyleSheet.create({
   },
   resourceItem: {
     alignItems: "center", // Ensure everything inside is centered
-    marginRight: 30,
+    marginRight: 18,
     width: 120, // Adjust the width of the card
     borderRadius: 20,
     marginLeft: 15,
   },
   resourceImageWrapper: {
-    width: 130,
-    height: 130,
-    backgroundColor: "#EBEBEB", // Updated card background
+    width: 120,
+    height: 120,
+    backgroundColor: "#EBEBEB",
     borderRadius: 20,
     padding: 10,
     justifyContent: "center",
     alignItems: "center",
   },
   resourceImage: {
-    width: 130,
-    height: 130,
+    width: 120,
+    height: 120,
+    backgroundColor: "#EBEBEB",
     borderRadius: 20,
   },
   resourceText: {
@@ -422,7 +397,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#d3d3d3",
   },
   dayName: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#888",
     marginBottom: 6,
   },
