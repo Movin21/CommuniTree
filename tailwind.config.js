@@ -11,6 +11,7 @@ module.exports = {
       },
       fontFamily: {
         inter: ["Inter"],
+        karla: ["Karla"],
       },
       borderRadius: {
         obi: "80px",

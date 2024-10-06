@@ -1,4 +1,10 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import React from "react";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import TabBarButton from "./TabBarButton";
@@ -6,8 +12,10 @@ import TabBarButton from "./TabBarButton";
 const TabBar = ({ state, descriptors, navigation }: any) => {
   const primaryColor = "#004BAC";
   const greyColor = "#7D7F88";
+  const screenWidth = Dimensions.get("window").width; // Get the width of the screen
+
   return (
-    <View style={styles.tabbar}>
+    <View style={[styles.tabbar, { width: screenWidth }]}>
       {state.routes.map(
         (
           route: { key: string | number; name: string; params: any },
@@ -57,31 +65,6 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
               label={label}
             />
           );
-
-          // return (
-          //   <TouchableOpacity
-          //     key={route.name}
-          //     style={styles.tabbarItem}
-          //     accessibilityRole="button"
-          //     accessibilityState={isFocused ? { selected: true } : {}}
-          //     accessibilityLabel={options.tabBarAccessibilityLabel}
-          //     testID={options.tabBarTestID}
-          //     onPress={onPress}
-          //     onLongPress={onLongPress}
-          //   >
-          //     {
-          //         icons[route.name]({
-          //             color: isFocused? primaryColor: greyColor
-          //         })
-          //     }
-          //     <Text style={{
-          //         color: isFocused ? primaryColor : greyColor,
-          //         fontSize: 11
-          //     }}>
-          //       {label}
-          //     </Text>
-          //   </TouchableOpacity>
-          // );
         }
       )}
     </View>
@@ -91,15 +74,16 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
 const styles = StyleSheet.create({
   tabbar: {
     position: "absolute",
-    bottom: 25,
+    bottom: 0, // Pin the tab bar to the bottom of the screen
+    left: 0,
+    right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "white",
-    marginHorizontal: 20,
     paddingVertical: 15,
-    borderRadius: 25,
-    borderCurve: "continuous",
+    borderTopWidth: 1, // Add a top border if needed
+    borderTopColor: "#ccc",
     shadowColor: "black",
     shadowOffset: { width: 0, height: 10 },
     shadowRadius: 10,

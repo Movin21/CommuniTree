@@ -3,16 +3,16 @@
   "compilerOptions": {
     "jsx": "react",
     "strict": true,
+    "esModuleInterop": true,
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-, "components/FormFeilds.js"  ]
+    "expo-env.d.ts",
+    "components/FormFeilds.js"
+  ]
 }
