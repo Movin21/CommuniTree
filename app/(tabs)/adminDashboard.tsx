@@ -5,11 +5,12 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Alert
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
-import { database, appwriteConfig, Query ,Models} from '../../lib/appwrite';
+import { fetchComplaints, createInterruptionAlert } from "../../lib/appwrite";
 
 NativeWindStyleSheet.setOutput({
   default: "native",
@@ -22,33 +23,38 @@ interface Complaint {
 }
 const AdminDashboard = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [id, setid] = useState("");
+  const [alertdescription, setalertdescription] = useState("");
 
   useEffect(() => {
-    fetchComplaints();
-  }, []);
+    const getComplaints = async () => {
+      try {
+        const fetchedComplaints = await fetchComplaints();
+        setComplaints(fetchedComplaints);
+      } catch (error) {
+        console.error('Error fetching complaints:', error);
+      }
+    };
 
-  const fetchComplaints = async () => {
+    getComplaints();
+  }, []);
+  const handleSendInterruption = async () => {
+    if (!id || !alertdescription) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
     try {
-      const response = await database.listDocuments<Models.Document>(
-        appwriteConfig.databaseId,
-        appwriteConfig.issueCollectionId,
-        [
-          Query.orderDesc('$createdAt'),
-          Query.limit(10)
-        ]
-      );
-      
-      const mappedComplaints: Complaint[] = response.documents.map(doc => ({
-        firstname: doc.firstname as string,
-        issuetitle: doc.issuetitle as string,
-        $id: doc.$id
-      }));
-      
-      setComplaints(mappedComplaints);
+      await createInterruptionAlert(id, alertdescription);
+      Alert.alert("Success", "Interruption alert sent successfully");
+      setid("");
+      setalertdescription("");
     } catch (error) {
-      console.error('Error fetching complaints:', error);
+      Alert.alert("Error", "Failed to send interruption alert");
     }
   };
+
+
   return (
     <View className="flex-1" style={{ backgroundColor: "#F9F9F9" }}>
       <StatusBar style="auto" />
@@ -93,6 +99,8 @@ const AdminDashboard = () => {
                   <TextInput
                     className="bg-white p-2 rounded-md"
                     placeholder="Enter ID"
+                    value={id}
+                    onChangeText={setid}
                   />
                 </View>
                 <View className="flex-1 ml-2">
@@ -109,9 +117,14 @@ const AdminDashboard = () => {
                   className="bg-white p-2 rounded-md"
                   placeholder="Enter alert description"
                   multiline
+                  value={alertdescription}
+                  onChangeText={setalertdescription}
                 />
               </View>
-              <TouchableOpacity className="bg-primaryColor p-2  rounded-lg items-center">
+              <TouchableOpacity
+                className="bg-primaryColor p-2 rounded-lg items-center"
+                onPress={handleSendInterruption}
+              >
                 <Text className="text-white font-bold font-inter">SEND</Text>
               </TouchableOpacity>
             </View>
