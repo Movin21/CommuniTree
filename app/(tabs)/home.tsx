@@ -1,22 +1,69 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ColorList from "../../components/ColorList";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
+import { database, appwriteConfig, Query, Models } from "../../lib/appwrite";
 
 NativeWindStyleSheet.setOutput({
   default: "native",
 });
-
+interface InterruptionAlert {
+  $id: string;
+  id: string;
+  alertdescription: string;
+}
 const Home = () => {
+  const [interruptionAlerts, setInterruptionAlerts] = useState<
+    InterruptionAlert[]
+  >([]);
+
+  useEffect(() => {
+    fetchInterruptionAlerts();
+  }, []);
+
+  const fetchInterruptionAlerts = async () => {
+    try {
+      const response = await database.listDocuments<Models.Document>(
+        appwriteConfig.databaseId,
+        appwriteConfig.interruptionCollectionId,
+        [Query.orderDesc("$createdAt"), Query.limit(4)]
+      );
+
+      const mappedAlerts: InterruptionAlert[] = response.documents.map(
+        (doc) => ({
+          $id: doc.$id,
+          id: doc.id as string,
+          alertdescription: doc.alertdescription as string,
+        })
+      );
+
+      setInterruptionAlerts(mappedAlerts);
+    } catch (error) {
+      console.error("Error fetching interruption alerts:", error);
+    }
+  };
+
+  const getSeverityColor = (index: number) => {
+    const colors = [
+      "bg-green-500",
+      "bg-blue-500",
+      "bg-orange-500",
+      "bg-red-500",
+    ];
+    return colors[index % colors.length];
+  };
+
   return (
     <ScrollView>
       <View className="flex-1 bg-white mt-0">
         <StatusBar style="auto" />
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
           <View className="p-4">
-            <Text className="text-2xl font-bold mb-4 font-inter">Welcome, Bimal</Text>
+            <Text className="text-2xl font-bold mb-4 font-inter">
+              Welcome, Bimal
+            </Text>
 
             <View className="flex-row mb-4">
               <TouchableOpacity
@@ -34,7 +81,9 @@ const Home = () => {
                 className="flex-1 p-4 rounded-lg ml-2"
                 style={{ backgroundColor: "#7A453E" }}
               >
-                <Text className="text-white font-bold font-inter ">Complaints</Text>
+                <Text className="text-white font-bold font-inter ">
+                  Complaints
+                </Text>
                 <View className="absolute top-2 right-2 bg-white rounded-full w-6 h-6 items-center justify-center">
                   <Text className="text-red-700 font-bold">2</Text>
                 </View>
@@ -45,52 +94,43 @@ const Home = () => {
               className="p-4 rounded-lg mb-4"
               style={{ backgroundColor: "#DC503D" }}
             >
-              <Text className="text-white font-bold font-inter">Community Board</Text>
+              <Text className="text-white font-bold font-inter">
+                Community Board
+              </Text>
             </TouchableOpacity>
 
-            <Text className="text-xl font-bold mb-2 font-inter">Interruption Alerts</Text>
+            <Text className="text-xl font-bold mb-2 font-inter">
+              Interruption Alerts
+            </Text>
             <View className="bg-white rounded-lg p-4 mb-4 shadow-md">
               <View className="flex-row border-b border-gray-200 pb-2 mb-2">
                 <Text className="flex-1 text-gray-500 font-medium font-inter">
                   Interruption ID
                 </Text>
                 <Text className="flex-2 text-gray-500 font-medium font-inter">
-                  Ater Description
+                  Alert Description
                 </Text>
                 <Text className="flex-1 text-gray-500 font-medium text-right font-inter">
-                  Sevierty
+                  Severity
                 </Text>
               </View>
-              {[
-                {
-                  id: "001",
-                  desc: "Water tank leackage...",
-                  color: "bg-green-500",
-                },
-                {
-                  id: "002",
-                  desc: "Elivator shaking ...",
-                  color: "bg-blue-500",
-                },
-                {
-                  id: "003",
-                  desc: "Parking area is ...",
-                  color: "bg-orange-500",
-                },
-                {
-                  id: "004",
-                  desc: "No water since mon...",
-                  color: "bg-red-500",
-                },
-              ].map((item, index) => (
+              {interruptionAlerts.map((alert, index) => (
                 <View
-                  key={item.id}
+                  key={alert.$id}
                   className="flex-row items-center py-2 border-b border-gray-100"
                 >
-                  <Text className="flex-1 text-gray-700 font-inter">{item.id}</Text>
-                  <Text className="flex-2 text-gray-600 font-inter">{item.desc}</Text>
+                  <Text className="flex-1 text-gray-700 font-inter">
+                    {alert.id}
+                  </Text>
+                  <Text className="flex-2 text-gray-600 font-inter">
+                    {alert.alertdescription.substring(0, 20)}...
+                  </Text>
                   <View className="flex-1 items-end">
-                    <View className={`w-3 h-3 rounded-full ${item.color}`} />
+                    <View
+                      className={`w-3 h-3 rounded-full ${getSeverityColor(
+                        index
+                      )}`}
+                    />
                   </View>
                 </View>
               ))}
@@ -117,7 +157,9 @@ const Home = () => {
                       size={24}
                       color="black"
                     />
-                    <Text className="font-bold mt-2 font-inter">{facility.name}</Text>
+                    <Text className="font-bold mt-2 font-inter">
+                      {facility.name}
+                    </Text>
                     <Text>{facility.distance}</Text>
                   </View>
                 </View>
