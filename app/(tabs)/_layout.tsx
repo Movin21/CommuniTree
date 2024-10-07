@@ -1,17 +1,13 @@
 import React from "react";
-import { Tabs } from "expo-router";
 import TabBar from "../../components/TabBar"; // Assuming you have a custom TabBar component
-
-const TabsLayout = () => {
-
 import { Tabs, useRouter } from "expo-router";
-import TabBar from "../../components/TabBar";
 import { TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 
-const _layout: React.FC = () => {
+const TabsLayout: React.FC = () => {
   const router = useRouter();
+
   const commonHeaderOptions: BottomTabNavigationOptions = {
     headerStyle: {
       backgroundColor: "white",
@@ -41,46 +37,45 @@ const _layout: React.FC = () => {
     ),
     headerShadowVisible: false,
   };
+
   return (
-    <>
-      <Tabs tabBar={(props) => <TabBar {...props} />}>
-        <Tabs.Screen
-          name="home"
-          options={{
-            title: "Home",
-            ...commonHeaderOptions,
-          }}
-        />
-        <Tabs.Screen
-          name="reserve"
-          options={{
-            title: "Reservations",
-            ...commonHeaderOptions,
-          }}
-        />
-        <Tabs.Screen
-          name="complaints"
-          options={{
-            title: "Complaints",
-            ...commonHeaderOptions,
-          }}
-        />
-        <Tabs.Screen
-          name="calendar"
-          options={{
-            title: "Calendar",
-            ...commonHeaderOptions,
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: "Profile",
-            ...commonHeaderOptions,
-          }}
-        />
-      </Tabs>
-    </>
+    <Tabs tabBar={(props) => <TabBar {...props} />}>
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: "Home",
+          ...commonHeaderOptions,
+        }}
+      />
+      <Tabs.Screen
+        name="reserve"
+        options={{
+          title: "Reservations",
+          ...commonHeaderOptions,
+        }}
+      />
+      <Tabs.Screen
+        name="complaints"
+        options={{
+          title: "Complaints",
+          ...commonHeaderOptions,
+        }}
+      />
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: "Calendar",
+          ...commonHeaderOptions,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          ...commonHeaderOptions,
+        }}
+      />
+    </Tabs>
   );
 };
 

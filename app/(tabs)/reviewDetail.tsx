@@ -5,9 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useRoute, RouteProp } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native"; // Import useNavigation for navigation
+import { useNavigation } from "@react-navigation/native";
+import { createReservation } from "../../lib/appwrite"; // Import the createReservation function
 
 // Define the types for route parameters
 type RootStackParamList = {
@@ -40,20 +42,41 @@ const ReviewDetail = () => {
     additionalDetails,
   } = route.params;
 
-  const handleConfirmPress = () => {
-    // You can handle the "Confirm" button press here, like submitting the final data
-    console.log("Booking confirmed with details:", {
-      resourceType,
-      date,
-      timeSlot,
-      fullName,
-      residenceNumber,
-      contactNumber,
-      email,
-      additionalDetails,
-    });
-    // You can also navigate to another screen after confirmation, if needed
-    // navigation.navigate('NextScreen');
+  const handleConfirmPress = async () => {
+    try {
+      const reservationData = {
+        resourceType,
+        date,
+        timeSlot,
+        userDetails: {
+          userName: fullName,
+          residenceNumber,
+          contactNumber,
+          email,
+          additionalDetails,
+        },
+      };
+
+      // Call the createReservation function to store the data
+      const response = await createReservation(reservationData);
+
+      if (response) {
+        Alert.alert("Success", "Reservation confirmed and saved.");
+        // Optional: You can navigate to another screen after confirmation
+        // navigation.navigate('NextScreen');
+      }
+    } catch (error: any) {
+      if (error.message.includes("fully booked")) {
+        // Show an alert when the time slot has reached the max reservation count
+        Alert.alert(
+          "Fully Booked",
+          "This time slot has reached its maximum reservation limit."
+        );
+      } else {
+        console.error("Error saving reservation:", error);
+        Alert.alert("Error", "Failed to save reservation. Please try again.");
+      }
+    }
   };
 
   return (
