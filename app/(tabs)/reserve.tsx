@@ -10,11 +10,13 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { FontAwesome } from "@expo/vector-icons";
 import * as Animatable from "react-native-animatable";
+import { isSlotBooked } from "@/lib/appwrite";
 
 type RootStackParamList = {
   ReservationForm: {
@@ -30,20 +32,59 @@ type ReservationScreenNavigationProp = StackNavigationProp<
 >;
 
 // Simulated function to fetch available time slots for the selected date
-const fetchTimeSlotsForDate = async (date: string) => {
+const fetchTimeSlotsForDate = async (
+  date: string,
+  selectedResource: string
+): Promise<{ time: string; booked: boolean }[]> => {
   const slots = [
-    { time: "08:00-09:00", booked: Math.random() < 0.3 },
-    { time: "09:00-10:00", booked: Math.random() < 0.3 },
-    { time: "10:00-11:00", booked: Math.random() < 0.3 },
-    { time: "11:00-12:00", booked: Math.random() < 0.3 },
-    { time: "12:00-13:00", booked: Math.random() < 0.3 },
-    { time: "13:00-14:00", booked: Math.random() < 0.3 },
-    { time: "14:00-15:00", booked: Math.random() < 0.3 },
-    { time: "15:00-16:00", booked: Math.random() < 0.3 },
-    { time: "16:00-17:00", booked: Math.random() < 0.3 },
-    { time: "17:00-18:00", booked: Math.random() < 0.3 },
-    { time: "18:00-19:00", booked: Math.random() < 0.3 },
-    { time: "19:00-20:00", booked: Math.random() < 0.3 },
+    {
+      time: "08:00-09:00",
+      booked: await isSlotBooked(date, "08:00-09:00", selectedResource),
+    },
+    {
+      time: "09:00-10:00",
+      booked: await isSlotBooked(date, "09:00-10:00", selectedResource),
+    },
+    {
+      time: "10:00-11:00",
+      booked: await isSlotBooked(date, "10:00-11:00", selectedResource),
+    },
+    {
+      time: "11:00-12:00",
+      booked: await isSlotBooked(date, "11:00-12:00", selectedResource),
+    },
+    {
+      time: "12:00-13:00",
+      booked: await isSlotBooked(date, "12:00-13:00", selectedResource),
+    },
+    {
+      time: "13:00-14:00",
+      booked: await isSlotBooked(date, "13:00-14:00", selectedResource),
+    },
+    {
+      time: "14:00-15:00",
+      booked: await isSlotBooked(date, "14:00-15:00", selectedResource),
+    },
+    {
+      time: "15:00-16:00",
+      booked: await isSlotBooked(date, "15:00-16:00", selectedResource),
+    },
+    {
+      time: "16:00-17:00",
+      booked: await isSlotBooked(date, "16:00-17:00", selectedResource),
+    },
+    {
+      time: "17:00-18:00",
+      booked: await isSlotBooked(date, "17:00-18:00", selectedResource),
+    },
+    {
+      time: "18:00-19:00",
+      booked: await isSlotBooked(date, "18:00-19:00", selectedResource),
+    },
+    {
+      time: "19:00-20:00",
+      booked: await isSlotBooked(date, "19:00-20:00", selectedResource),
+    },
   ];
 
   return new Promise((resolve) => {
@@ -82,7 +123,7 @@ const ReservationScreen = () => {
   const [isFocused, setIsFocused] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null); // For scrolling to the current date
   const navigation = useNavigation<ReservationScreenNavigationProp>();
-
+  const [isLoading, setIsLoading] = useState(false);
   const resourceTypes = [
     { id: 1, name: "Gym", image: require("../../assets/images/Gym.png") },
     {
@@ -103,18 +144,34 @@ const ReservationScreen = () => {
   ];
 
   useEffect(() => {
-    // Fetch available slots for the selected date
-    fetchTimeSlotsForDate(String(selectedDate)).then(setTimeSlots);
+    const fetchSlots = async () => {
+      setIsLoading(true);
+      try {
+        const slots = await fetchTimeSlotsForDate(
+          String(selectedDate),
+          selectedResource || "Gym"
+        );
+        setTimeSlots(slots);
+      } catch (error) {
+        console.error("Error fetching time slots:", error);
+        Alert.alert("Error", "Failed to fetch time slots. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    // Scroll to the selected (current) date after initial render
-    setTimeout(() => {
+    fetchSlots();
+
+    // Scroll to the selected (current) date after fetching slots
+    const scrollTimeout = setTimeout(() => {
       scrollViewRef.current?.scrollTo({
-        x: selectedDate * 60 - 100, // Adjust for date item width and offset
+        x: selectedDate * 60 - 100,
         animated: true,
       });
     }, 500);
-  }, [selectedDate]);
 
+    return () => clearTimeout(scrollTimeout);
+  }, [selectedDate, selectedResource]);
   const today = new Date().getDate();
 
   // Function to get the full day name for a specific date
@@ -135,7 +192,10 @@ const ReservationScreen = () => {
   // Handle selecting a date
   const handleDateSelect = async (date: number) => {
     setSelectedDate(date);
-    const slots = await fetchTimeSlotsForDate(String(date));
+    const slots = await fetchTimeSlotsForDate(
+      String(date),
+      selectedResource || "Gym"
+    );
     setTimeSlots(slots);
   };
 
@@ -265,28 +325,37 @@ const ReservationScreen = () => {
 
         {/* Time Slots */}
         <View style={styles.timeSlotContainer}>
-          {timeSlots.map((slot, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => setSelectedTimeSlot(slot.time)}
-              style={[
-                styles.timeSlot,
-                selectedDate < today || slot.booked ? styles.bookedSlot : null,
-                selectedTimeSlot === slot.time && styles.selectedTimeSlot,
-              ]}
-              disabled={selectedDate < today || slot.booked} // Disable slots if date is before today or already booked
-            >
-              <Text
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#004BAC" />
+              <Text style={styles.loadingText}>Loading time slots...</Text>
+            </View>
+          ) : (
+            timeSlots.map((slot, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setSelectedTimeSlot(slot.time)}
                 style={[
-                  slot.booked ? { color: "#888" } : null,
-                  selectedDate < today ? { color: "#888" } : null,
-                  selectedTimeSlot === slot.time && styles.selectedTimeText,
+                  styles.timeSlot,
+                  selectedDate < today || slot.booked
+                    ? styles.bookedSlot
+                    : null,
+                  selectedTimeSlot === slot.time && styles.selectedTimeSlot,
                 ]}
+                disabled={selectedDate < today || slot.booked}
               >
-                {slot.time}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    slot.booked ? { color: "#888" } : null,
+                    selectedDate < today ? { color: "#888" } : null,
+                    selectedTimeSlot === slot.time && styles.selectedTimeText,
+                  ]}
+                >
+                  {slot.time}
+                </Text>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         {/* Next Button */}
