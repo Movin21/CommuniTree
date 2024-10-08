@@ -1,9 +1,9 @@
 import React from "react";
-import TabBar from "../../components/TabBar"; // Assuming you have a custom TabBar component
-import { Tabs, useRouter } from "expo-router";
 import { TouchableOpacity } from "react-native";
+import { Tabs, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
+import TabBar from "../../components/TabBar"; // Assuming you have a custom TabBar component
 
 const TabsLayout: React.FC = () => {
   const router = useRouter();
