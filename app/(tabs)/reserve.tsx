@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,13 @@ import {
   Image,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack"; // Correct navigation type import
+import { StackNavigationProp } from "@react-navigation/stack";
 import { FontAwesome } from "@expo/vector-icons";
-import * as Animatable from "react-native-animatable"; // Importing Animatable for animations
+import * as Animatable from "react-native-animatable";
 
-// Define the ParamList for the stack navigator
 type RootStackParamList = {
   ReservationForm: {
     resourceType: string;
@@ -24,7 +24,6 @@ type RootStackParamList = {
   };
 };
 
-// Create a navigation type
 type ReservationScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "ReservationForm"
@@ -46,6 +45,7 @@ const fetchTimeSlotsForDate = async (date: string) => {
     { time: "18:00-19:00", booked: Math.random() < 0.3 },
     { time: "19:00-20:00", booked: Math.random() < 0.3 },
   ];
+
   return new Promise((resolve) => {
     setTimeout(() => resolve(slots), 1000);
   });
@@ -80,6 +80,7 @@ const ReservationScreen = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [isFocused, setIsFocused] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null); // For scrolling to the current date
   const navigation = useNavigation<ReservationScreenNavigationProp>();
 
   const resourceTypes = [
@@ -104,6 +105,14 @@ const ReservationScreen = () => {
   useEffect(() => {
     // Fetch available slots for the selected date
     fetchTimeSlotsForDate(String(selectedDate)).then(setTimeSlots);
+
+    // Scroll to the selected (current) date after initial render
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({
+        x: selectedDate * 60 - 100, // Adjust for date item width and offset
+        animated: true,
+      });
+    }, 500);
   }, [selectedDate]);
 
   const today = new Date().getDate();
@@ -137,6 +146,13 @@ const ReservationScreen = () => {
 
   const handleNext = () => {
     if (selectedResource && selectedTimeSlot && selectedDate !== null) {
+      if (selectedDate < today) {
+        Alert.alert(
+          "Invalid Date",
+          "You cannot book a reservation for a past date. Please select a valid date."
+        );
+        return;
+      }
       const formattedDate = `${selectedDate} - ${getDayName(selectedDate)}`; // Format the date
       navigation.navigate("ReservationForm", {
         resourceType: selectedResource,
@@ -210,6 +226,7 @@ const ReservationScreen = () => {
 
         {/* Date Picker */}
         <ScrollView
+          ref={scrollViewRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.datePicker}
@@ -251,17 +268,18 @@ const ReservationScreen = () => {
           {timeSlots.map((slot, index) => (
             <TouchableOpacity
               key={index}
-              onPress={() => !slot.booked && setSelectedTimeSlot(slot.time)}
+              onPress={() => setSelectedTimeSlot(slot.time)}
               style={[
                 styles.timeSlot,
-                slot.booked ? styles.bookedSlot : null,
+                selectedDate < today || slot.booked ? styles.bookedSlot : null,
                 selectedTimeSlot === slot.time && styles.selectedTimeSlot,
               ]}
-              disabled={slot.booked} // Disable booked slots
+              disabled={selectedDate < today || slot.booked} // Disable slots if date is before today or already booked
             >
               <Text
                 style={[
                   slot.booked ? { color: "#888" } : null,
+                  selectedDate < today ? { color: "#888" } : null,
                   selectedTimeSlot === slot.time && styles.selectedTimeText,
                 ]}
               >
