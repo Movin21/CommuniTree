@@ -119,11 +119,11 @@ const Home = () => {
                   <Text className="flex-2 text-gray-600 font-inter">
                     {alert.alertdescription.substring(0, 20)}...
                   </Text>
-                  <View className="flex-1 items-end">
+                  <View className="flex-1 items-end ">
                     <View
-                      className={`w-3 h-3 rounded-full ${getSeverityColor(
+                      className={`w-3 h-3 rounded-full  ${getSeverityColor(
                         index
-                      )}`}
+                      )} `}
                     />
                   </View>
                 </View>

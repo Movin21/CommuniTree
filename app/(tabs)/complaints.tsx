@@ -63,7 +63,7 @@ const Complaints = () => {
     >
       <StatusBar style="auto" />
       <ScrollView contentContainerStyle={{  paddingBottom: 100 ,padding:15 }}>
-        <Text className="text-2xl font-bold mb-4">Submit a Complaint</Text>
+        <Text className="text-2xl font-bold mb-4">Report Your Issue</Text>
         
         <View className="flex-row mb-3">
           <View className="flex-1 mr-2">
