@@ -3,7 +3,7 @@ import { TouchableOpacity } from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
-import TabBar from "../../components/TabBar"; // Assuming you have a custom TabBar component
+import TabBar from "../../components/TabBar";
 
 const TabsLayout: React.FC = () => {
   const router = useRouter();
@@ -29,7 +29,7 @@ const TabsLayout: React.FC = () => {
     ),
     headerRight: () => (
       <TouchableOpacity
-        onPress={() => router.push("#")}
+        onPress={() => router.push("./notification")}
         style={{ marginRight: 16 }}
       >
         <Feather name="bell" size={24} color="#0066FF" />

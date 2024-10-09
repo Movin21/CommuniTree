@@ -12,6 +12,7 @@ import {
   Alert,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { router } from "expo-router";
 
 // Define the types for route parameters
 type RootStackParamList = {
@@ -38,7 +39,7 @@ type ReservationFormRouteProp = RouteProp<
 >;
 
 // Define the type for navigation
-type ReservationFormNavigationProp = any; // Use `any` if you're unsure of the full navigation structure, or replace with a proper type if needed
+type ReservationFormNavigationProp = any;
 
 const ReservationForm = () => {
   const [fullName, setFullName] = useState("");
@@ -48,67 +49,131 @@ const ReservationForm = () => {
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [isAgreed, setIsAgreed] = useState(false);
 
-  // Fix typing for navigation and route
-  const navigation = useNavigation<ReservationFormNavigationProp>();
-  const route = useRoute<ReservationFormRouteProp>(); // Get the data passed from the previous screen
+  const [errors, setErrors] = useState({
+    fullName: "",
+    residenceNumber: "",
+    contactNumber: "",
+    email: "",
+    additionalDetails: "",
+  });
 
-  // Get the passed details from route.params
+  const navigation = useNavigation<ReservationFormNavigationProp>();
+  const route = useRoute<ReservationFormRouteProp>();
+
   const { resourceType, date, timeSlot } = route.params;
 
+  // Validation functions
+  const validateFullName = (value: string) => {
+    if (value.trim().length < 3) {
+      return "Full name must be at least 3 characters long.";
+    }
+    return "";
+  };
+
+  const validateResidenceNumber = (value: string) => {
+    const regex = /^RX\d+$/;
+    if (!regex.test(value)) {
+      return "Residence number must start with RX followed by numbers.";
+    }
+    return "";
+  };
+
+  const validateContactNumber = (value: string) => {
+    const regex = /^0\d{9}$/;
+    if (!regex.test(value)) {
+      return "Contact number must be in the format 0xxxxxxxxx.";
+    }
+    return "";
+  };
+
+  const validateEmail = (value: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regex.test(value)) {
+      return "Please enter a valid email address.";
+    }
+    return "";
+  };
+
+  const validateAdditionalDetails = (value: string) => {
+    if (value.trim() === "") {
+      return "Additional details cannot be empty.";
+    }
+    return "";
+  };
+
+  // Input change handlers with real-time validation
+  const handleFullNameChange = (value: string) => {
+    setFullName(value);
+    setErrors({ ...errors, fullName: validateFullName(value) });
+  };
+
+  const handleResidenceNumberChange = (value: string) => {
+    setResidenceNumber(value);
+    setErrors({ ...errors, residenceNumber: validateResidenceNumber(value) });
+  };
+
+  const handleContactNumberChange = (value: string) => {
+    setContactNumber(value);
+    setErrors({ ...errors, contactNumber: validateContactNumber(value) });
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    setErrors({ ...errors, email: validateEmail(value) });
+  };
+
+  const handleAdditionalDetailsChange = (value: string) => {
+    setAdditionalDetails(value);
+    setErrors({
+      ...errors,
+      additionalDetails: validateAdditionalDetails(value),
+    });
+  };
+
   const validateInputs = () => {
-    // Check if any of the required fields are empty
-    if (
-      !fullName ||
-      !residenceNumber ||
-      !contactNumber ||
-      !email ||
-      !additionalDetails
-    ) {
-      Alert.alert("Validation Error", "Please fill out all the fields.");
-      return false;
-    }
-    // Check if the user has agreed to the terms
-    if (!isAgreed) {
-      Alert.alert(
-        "Terms of Service",
-        "You must agree to the Terms of Service to proceed."
-      );
-      return false;
-    }
-    return true;
+    const fullNameError = validateFullName(fullName);
+    const residenceNumberError = validateResidenceNumber(residenceNumber);
+    const contactNumberError = validateContactNumber(contactNumber);
+    const emailError = validateEmail(email);
+    const additionalDetailsError = validateAdditionalDetails(additionalDetails);
+
+    setErrors({
+      fullName: fullNameError,
+      residenceNumber: residenceNumberError,
+      contactNumber: contactNumberError,
+      email: emailError,
+      additionalDetails: additionalDetailsError,
+    });
+
+    return (
+      !fullNameError &&
+      !residenceNumberError &&
+      !contactNumberError &&
+      !emailError &&
+      !additionalDetailsError
+    );
   };
 
   const handleBookPress = () => {
-    // Validate input fields
     if (validateInputs()) {
-      // Log all details in the console before navigation
-      console.log({
-        resourceType,
-        date,
-        timeSlot, // Ensure this is logged
-        fullName,
-        residenceNumber,
-        contactNumber,
-        email,
-        additionalDetails,
-      });
-
-      // Navigate to the reviewDetail screen and pass all the form and previous screen data
-      navigation.navigate("reviewDetail", {
-        resourceType,
-        date,
-        timeSlot, // Pass the time slot to the next screen
-        fullName,
-        residenceNumber,
-        contactNumber,
-        email,
-        additionalDetails,
+      router.push({
+        pathname: "./reviewDetail",
+        params: {
+          resourceType,
+          date,
+          timeSlot,
+          fullName,
+          residenceNumber,
+          contactNumber,
+          email,
+          additionalDetails,
+        },
       });
     }
   };
 
   const handleTermsOfServicePress = () => {
-    navigation.navigate("termsOfServices"); // Navigate to the termsOfServices screen
+    navigation.navigate("termsOfServices");
   };
 
   return (
@@ -131,8 +196,11 @@ const ReservationForm = () => {
               placeholder="Ex: Yasas Lakmina"
               placeholderTextColor="#C4C4C4"
               value={fullName}
-              onChangeText={setFullName}
+              onChangeText={handleFullNameChange}
             />
+            {errors.fullName ? (
+              <Text style={styles.errorText}>{errors.fullName}</Text>
+            ) : null}
 
             {/* Residence Number Field */}
             <Text style={styles.label}>Residence Number</Text>
@@ -141,8 +209,11 @@ const ReservationForm = () => {
               placeholder="RX#######"
               placeholderTextColor="#C4C4C4"
               value={residenceNumber}
-              onChangeText={setResidenceNumber}
+              onChangeText={handleResidenceNumberChange}
             />
+            {errors.residenceNumber ? (
+              <Text style={styles.errorText}>{errors.residenceNumber}</Text>
+            ) : null}
 
             {/* Contact Number Field */}
             <Text style={styles.label}>Contact No</Text>
@@ -152,8 +223,11 @@ const ReservationForm = () => {
               placeholderTextColor="#C4C4C4"
               keyboardType="phone-pad"
               value={contactNumber}
-              onChangeText={setContactNumber}
+              onChangeText={handleContactNumberChange}
             />
+            {errors.contactNumber ? (
+              <Text style={styles.errorText}>{errors.contactNumber}</Text>
+            ) : null}
 
             {/* Email Field */}
             <Text style={styles.label}>Email</Text>
@@ -163,8 +237,11 @@ const ReservationForm = () => {
               placeholderTextColor="#C4C4C4"
               keyboardType="email-address"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={handleEmailChange}
             />
+            {errors.email ? (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            ) : null}
 
             {/* Additional Details Field */}
             <Text style={styles.label}>Additional Details</Text>
@@ -174,8 +251,11 @@ const ReservationForm = () => {
               placeholderTextColor="#C4C4C4"
               multiline
               value={additionalDetails}
-              onChangeText={setAdditionalDetails}
+              onChangeText={handleAdditionalDetailsChange}
             />
+            {errors.additionalDetails ? (
+              <Text style={styles.errorText}>{errors.additionalDetails}</Text>
+            ) : null}
 
             {/* Terms and Conditions */}
             <View style={styles.checkboxContainer}>
@@ -199,7 +279,7 @@ const ReservationForm = () => {
 
             {/* Submit Button */}
             <TouchableOpacity
-              style={[styles.nextButton, !isAgreed && styles.disabledButton]} // Grays out if checkbox is unchecked
+              style={[styles.nextButton, !isAgreed && styles.disabledButton]}
               onPress={handleBookPress}
             >
               <Text style={styles.nextButtonText}>Book</Text>
@@ -219,7 +299,7 @@ const styles = StyleSheet.create({
   scrollViewContainer: {
     padding: 20,
     flexGrow: 1,
-    paddingBottom: 100, // Ensures space for the button to not overlap
+    paddingBottom: 100,
   },
   form: {
     width: "100%",
@@ -263,7 +343,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 25,
     marginBottom: 20,
-    justifyContent: "flex-start", // Ensure checkbox is left-aligned
+    justifyContent: "flex-start",
   },
   checkbox: {
     width: 17,
@@ -288,8 +368,8 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: "#004BAC",
-    textDecorationLine: "underline", // Underline the text
-    textAlign: "center", // Centering the Terms of Services text
+    textDecorationLine: "underline",
+    textAlign: "center",
   },
   nextButton: {
     backgroundColor: "#004BAC",
@@ -306,7 +386,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   disabledButton: {
-    backgroundColor: "#B0B0B0", // Gray color for disabled state
+    backgroundColor: "#B0B0B0",
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 10,
+    fontSize: 12,
   },
 });
 

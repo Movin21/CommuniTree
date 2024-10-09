@@ -10,13 +10,14 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
-  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { FontAwesome } from "@expo/vector-icons";
 import * as Animatable from "react-native-animatable";
 import { isSlotBooked } from "@/lib/appwrite";
+import { router } from "expo-router";
+import LottieView from "lottie-react-native";
 
 type RootStackParamList = {
   ReservationForm: {
@@ -172,6 +173,7 @@ const ReservationScreen = () => {
 
     return () => clearTimeout(scrollTimeout);
   }, [selectedDate, selectedResource]);
+
   const today = new Date().getDate();
 
   // Function to get the full day name for a specific date
@@ -214,10 +216,13 @@ const ReservationScreen = () => {
         return;
       }
       const formattedDate = `${selectedDate} - ${getDayName(selectedDate)}`; // Format the date
-      navigation.navigate("ReservationForm", {
-        resourceType: selectedResource,
-        date: formattedDate, // Pass the formatted date
-        timeSlot: selectedTimeSlot, // Pass the selected time slot
+      router.push({
+        pathname: "/ReservationForm",
+        params: {
+          resourceType: selectedResource,
+          date: formattedDate,
+          timeSlot: selectedTimeSlot,
+        },
       });
     } else {
       alert("Please select a resource, date, and time slot");
@@ -327,7 +332,12 @@ const ReservationScreen = () => {
         <View style={styles.timeSlotContainer}>
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#004BAC" />
+              <LottieView
+                source={require("../../assets/animations/loading.json")} // Path to your Lottie animation
+                autoPlay
+                loop
+                style={{ width: 300, height: 300 }}
+              />
               <Text style={styles.loadingText}>Loading time slots...</Text>
             </View>
           ) : (
@@ -538,6 +548,15 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
     fontWeight: "bold",
+  },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#555",
   },
 });
 
