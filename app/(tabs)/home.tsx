@@ -4,7 +4,7 @@ import ColorList from "../../components/ColorList";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
-import {fetchInterruptionAlerts ,fetchComplaints } from "../../lib/appwrite";
+import {fetchInterruptionAlerts ,fetchComplaints,getCurrentUser } from "../../lib/appwrite";
 
 NativeWindStyleSheet.setOutput({
   default: "native",
@@ -17,6 +17,8 @@ interface InterruptionAlert {
 const Home = () => {
   const [interruptionAlerts, setInterruptionAlerts] = useState<InterruptionAlert[]>([]);
   const [complaintCount, setComplaintCount] = useState(0);
+  const [userName, setUserName] = useState("");
+
   useEffect(() => {
     const getInterruptionAlerts = async () => {
       try {
@@ -25,6 +27,9 @@ const Home = () => {
 
         const complaints = await fetchComplaints();
         setComplaintCount(complaints.length);
+
+        const user = await getCurrentUser();
+        setUserName(user.name || "User"); 
 
       } catch (error) {
         console.error("Error fetching interruption alerts:", error);
@@ -51,7 +56,7 @@ const Home = () => {
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
           <View className="p-4">
             <Text className="text-2xl font-bold mb-4 font-inter">
-              Welcome, Bimal
+            Welcome, {userName}
             </Text>
 
             <View className="flex-row mb-4">
