@@ -4,7 +4,7 @@ import ColorList from "../../components/ColorList";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
-import {fetchInterruptionAlerts  } from "../../lib/appwrite";
+import {fetchInterruptionAlerts ,fetchComplaints } from "../../lib/appwrite";
 
 NativeWindStyleSheet.setOutput({
   default: "native",
@@ -16,12 +16,16 @@ interface InterruptionAlert {
 }
 const Home = () => {
   const [interruptionAlerts, setInterruptionAlerts] = useState<InterruptionAlert[]>([]);
-
+  const [complaintCount, setComplaintCount] = useState(0);
   useEffect(() => {
     const getInterruptionAlerts = async () => {
       try {
         const alerts = await fetchInterruptionAlerts();
         setInterruptionAlerts(alerts);
+
+        const complaints = await fetchComplaints();
+        setComplaintCount(complaints.length);
+
       } catch (error) {
         console.error("Error fetching interruption alerts:", error);
       }
@@ -70,7 +74,7 @@ const Home = () => {
                   Complaints
                 </Text>
                 <View className="absolute top-2 right-2 bg-white rounded-full w-6 h-6 items-center justify-center">
-                  <Text className="text-red-700 font-bold">2</Text>
+                  <Text className="text-red-700 font-bold">{complaintCount}</Text>
                 </View>
               </TouchableOpacity>
             </View>
