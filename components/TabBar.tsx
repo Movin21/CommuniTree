@@ -29,7 +29,16 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
               ? options.title
               : route.name;
 
-          if (["_sitemap", "+not-found", "adminDashboard"].includes(route.name))
+          if (
+            [
+              "_sitemap",
+              "+not-found",
+              "adminDashboard",
+              "ReservationForm",
+              "reviewDetail",
+              "notification",
+            ].includes(route.name)
+          )
             return null;
 
           const isFocused = state.index === index;
@@ -56,7 +65,7 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
           return (
             <TabBarButton
               key={route.name}
-              style={styles.tabbarItem}
+              style={styles.tabbar}
               onPress={onPress}
               onLongPress={onLongPress}
               isFocused={isFocused}
