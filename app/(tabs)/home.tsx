@@ -4,7 +4,7 @@ import ColorList from "../../components/ColorList";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
-import {fetchInterruptionAlerts  } from "../../lib/appwrite";
+import {fetchInterruptionAlerts ,fetchComplaints,getCurrentUser } from "../../lib/appwrite";
 
 NativeWindStyleSheet.setOutput({
   default: "native",
@@ -16,12 +16,21 @@ interface InterruptionAlert {
 }
 const Home = () => {
   const [interruptionAlerts, setInterruptionAlerts] = useState<InterruptionAlert[]>([]);
+  const [complaintCount, setComplaintCount] = useState(0);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     const getInterruptionAlerts = async () => {
       try {
         const alerts = await fetchInterruptionAlerts();
         setInterruptionAlerts(alerts);
+
+        const complaints = await fetchComplaints();
+        setComplaintCount(complaints.length);
+
+        const user = await getCurrentUser();
+        setUserName(user.name || "User"); 
+
       } catch (error) {
         console.error("Error fetching interruption alerts:", error);
       }
@@ -47,7 +56,7 @@ const Home = () => {
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
           <View className="p-4">
             <Text className="text-2xl font-bold mb-4 font-inter">
-              Welcome, Bimal
+            Welcome, {userName}
             </Text>
 
             <View className="flex-row mb-4">
@@ -70,7 +79,7 @@ const Home = () => {
                   Complaints
                 </Text>
                 <View className="absolute top-2 right-2 bg-white rounded-full w-6 h-6 items-center justify-center">
-                  <Text className="text-red-700 font-bold">2</Text>
+                  <Text className="text-red-700 font-bold">{complaintCount}</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -110,11 +119,11 @@ const Home = () => {
                   <Text className="flex-2 text-gray-600 font-inter">
                     {alert.alertdescription.substring(0, 20)}...
                   </Text>
-                  <View className="flex-1 items-end">
+                  <View className="flex-1 items-end ">
                     <View
-                      className={`w-3 h-3 rounded-full ${getSeverityColor(
+                      className={`w-3 h-3 rounded-full  ${getSeverityColor(
                         index
-                      )}`}
+                      )} `}
                     />
                   </View>
                 </View>
