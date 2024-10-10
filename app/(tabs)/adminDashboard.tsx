@@ -11,6 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
 import { fetchComplaints, createInterruptionAlert } from "../../lib/appwrite";
+import { useNavigation } from "@react-navigation/native";
 
 NativeWindStyleSheet.setOutput({
   default: "native",
@@ -21,10 +22,12 @@ interface Complaint {
   issuetitle: string;
   $id: string;
 }
+
 const AdminDashboard = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [id, setid] = useState("");
   const [alertdescription, setalertdescription] = useState("");
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     const getComplaints = async () => {
@@ -54,6 +57,10 @@ const AdminDashboard = () => {
     }
   };
 
+  const navigateToAddEventForm = () => {
+    navigation.navigate("AddEventForm");
+  };
+
 
   return (
     <View className="flex-1" style={{ backgroundColor: "#F9F9F9" }}>
@@ -61,10 +68,13 @@ const AdminDashboard = () => {
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View className="p-4">
           <View className="flex-row mb-6">
-            <View className="flex-1 bg-white-100 rounded-lg p-8 ml-2 items-center justify-center shadow-md">
+            <TouchableOpacity 
+                className="flex-1 bg-white-100 rounded-lg p-8 ml-2 items-center justify-center shadow-md"
+                onPress={navigateToAddEventForm}
+              >
               <Ionicons name="calendar" size={32} color="black" />
-              <Text className="mt-2  text-center font-inter">Add an Event</Text>
-            </View>
+              <Text className="mt-2 text-center font-inter">Add an Event</Text>
+            </TouchableOpacity>
             <View className="flex-1 bg-white-100 rounded-lg p-8 ml-2 items-center justify-center shadow-md">
               <Ionicons name="eye" size={32} color="#3b82f6" />
               <Text className="mt-2 text-center font-inter">Manage Reservations</Text>
