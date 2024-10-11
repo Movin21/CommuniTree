@@ -1,38 +1,79 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
-import Event from './Event'; // Import the Event component we just created
+import Event from './Event';
+import { useNavigation } from '@react-navigation/native';
+import { fetchAllEvents } from '@/lib/appwrite';
+
+interface EventData {
+  $id: string;
+  title: string;
+  date: string;
+  time: string;
+}
 
 const Create: React.FC = () => {
-  const events = [
-    { title: 'Monthly Clean-Up', date: '8th August', time: '8:00 Onwards' },
-    { title: 'BBQ Night Alfred House', date: '25th August', time: '20:00 Onwards' },
-    { title: 'Share Plants September', date: '10th September', time: '9:00 Onwards' },
-    { title: 'Kids Friday', date: '15th September', time: '8:00 Onwards' },
-  ];
+  const navigation = useNavigation<any>();
+  const [events, setEvents] = React.useState<EventData[]>([]);
+  
+  useEffect(() => {
+    const getEvents = async () => {
+      try {
+        const fetchedEvents = await fetchAllEvents();
+        setEvents(fetchedEvents);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
+
+    getEvents();
+  }, []);
+
+  const sortedEventsByMonth = useMemo(() => {
+    const eventsByMonth: { [key: string]: EventData[] } = {};
+
+    events.forEach(event => {
+      const date = new Date(event.date);
+      const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+      if (!eventsByMonth[monthYear]) {
+        eventsByMonth[monthYear] = [];
+      }
+      eventsByMonth[monthYear].push(event);
+    });
+
+    // Sort events within each month
+    Object.keys(eventsByMonth).forEach(month => {
+      eventsByMonth[month].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    });
+
+    // Sort months
+    return Object.entries(eventsByMonth).sort(([a], [b]) => {
+      const dateA = new Date(a);
+      const dateB = new Date(b);
+      return dateA.getTime() - dateB.getTime();
+    });
+  }, [events]);
+
+  const navigateToEventDetails = (eventId: string) => {
+    navigation.navigate("EventDetails", { eventId });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <Text style={styles.monthTitle}>August</Text>
-        {events.slice(0, 2).map((event, index) => (
-          <Event
-            key={index}
-            title={event.title}
-            date={event.date}
-            time={event.time}
-            onPress={() => console.log(`Pressed ${event.title}`)}
-          />
-        ))}
-        
-        <Text style={styles.monthTitle}>September</Text>
-        {events.slice(2).map((event, index) => (
-          <Event
-            key={index}
-            title={event.title}
-            date={event.date}
-            time={event.time}
-            onPress={() => console.log(`Pressed ${event.title}`)}
-          />
+        {sortedEventsByMonth.map(([month, monthEvents]) => (
+          <View key={month}>
+            <Text style={styles.monthTitle}>{month}</Text>
+            {monthEvents.map((event) => (
+              <Event
+                key={event.$id}
+                title={event.title}
+                date={event.date}
+                time={event.time}
+                onPress={() => navigateToEventDetails(event.$id)}
+              />
+            ))}
+          </View>
         ))}
       </ScrollView>
     </SafeAreaView>
@@ -48,7 +89,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 16,
-    marginBottom: 32,
+    marginBottom: 8,
     paddingHorizontal: 16,
   },
 });
