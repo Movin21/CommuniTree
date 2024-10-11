@@ -75,6 +75,20 @@ const TabsLayout: React.FC = () => {
           ...commonHeaderOptions,
         }}
       />
+      <Tabs.Screen
+        name="AddEventForm"
+        options={{
+          title: "Add An Event",
+          ...commonHeaderOptions,
+        }}
+      />
+      <Tabs.Screen
+        name="EventDetails"
+        options={{
+          title: "Event",
+          ...commonHeaderOptions,
+        }}
+      />
     </Tabs>
   );
 };
