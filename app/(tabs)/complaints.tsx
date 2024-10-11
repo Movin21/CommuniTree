@@ -8,11 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
 import { createComplaint } from "../../lib/appwrite";
+import * as ImagePicker from 'expo-image-picker';
 
 NativeWindStyleSheet.setOutput({
   default: "native",
@@ -29,14 +31,42 @@ const Complaints = () => {
     location: "",
     contact: "",
   });
-
+  const [photo, setPhoto] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const handleInputChange = (field: string, value: string) => {
     setFormData((prevState) => ({ ...prevState, [field]: value }));
+  };
+   
+  const handleChoosePhoto = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission to access camera roll is required!");
+      return;
+    }
+
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!pickerResult.canceled && pickerResult.assets && pickerResult.assets.length > 0) {
+      setPhoto(pickerResult.assets[0]);
+      // console.log("Photo selected:", pickerResult.assets[0]);
+    } else {
+      console.log("Photo selection canceled or failed");
+    }
   };
 
   const handleSubmit = async () => {
     try {
-      await createComplaint(formData);
+      
+      
+      const complaintData = { ...formData};
+      console.log("Submitting complaint data:");
+      
+      await createComplaint(complaintData);
       Alert.alert("Success", "Your issue has been submitted successfully!");
       setFormData({
         firstname: "",
@@ -48,13 +78,16 @@ const Complaints = () => {
         location: "",
         contact: "",
       });
+      setPhoto(null);
     } catch (error) {
+      console.error("Error submitting complaint:", error);
       Alert.alert(
         "Error",
         "There was an error submitting your issue. Please try again."
       );
     }
   };
+
 
   return (
     <KeyboardAvoidingView
@@ -131,12 +164,27 @@ const Complaints = () => {
           />
         </View>
 
-        <TouchableOpacity className="flex-row items-center mb-4">
+        <TouchableOpacity 
+          className="flex-row items-center mb-4"
+          onPress={handleChoosePhoto}
+        >
           <View className="w-8 h-8 bg-gray-200 rounded-md items-center justify-center mr-2">
             <Ionicons name="camera" size={20} color="black" />
           </View>
-          <Text className="text-blue-500 text-sm">Add Photos</Text>
+          <Text className="text-blue-500 text-sm">
+            {photo ? "Change Photo" : "Add Photo"}
+          </Text>
         </TouchableOpacity>
+
+        {photo && photo.uri && (
+          <View className="mb-4">
+            <Image
+              source={{ uri: photo.uri }}
+              style={{ width: 200, height: 200, borderRadius: 10 }}
+            />
+            <Text className="text-xs text-gray-600 mt-2">Selected photo</Text>
+          </View>
+        )}
 
         <TouchableOpacity
             className="bg-primaryColor p-4 rounded-lg items-center"
