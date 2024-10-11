@@ -8,48 +8,65 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  Modal,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { Link, router } from "expo-router";
+import { Link, useRouter } from "expo-router";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  withSpring,
+} from "react-native-reanimated";
 import {
-  logIn,
-  getCurrentUser,
   checkSession,
   deleteCurrentSession,
-  resetPassword,
-} from "../../lib/appwrite";
-import { Models } from "react-native-appwrite";
+  getCurrentUser,
+  logIn,
+} from "@/lib/appwrite";
+import LoadingAnimation from "@/components/LoadingAnimation";
 
 const LoginForm = () => {
-  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const togglePasswordVisibility = () => setShowPassword(!showPassword);
-  const handleResetPassword = async () => {
-    if (!email) {
-      Alert.alert("Error", "Please enter your email address.");
-      return;
-    }
+  const router = useRouter();
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const modalOpacity = useSharedValue(0);
+  const modalScale = useSharedValue(0.8);
 
-    setIsLoading(true);
-    try {
-      await resetPassword(email);
-      Alert.alert(
-        "Password Reset",
-        "If an account exists for this email, you will receive a password reset link."
-      );
-    } catch (error) {
-      console.error("Password reset error:", error);
-      Alert.alert(
-        "Password Reset Failed",
-        "An error occurred while attempting to reset your password. Please try again later."
-      );
-    } finally {
-      setIsLoading(false);
-    }
+  const modalContainerStyle = useAnimatedStyle(() => {
+    return {
+      opacity: modalOpacity.value,
+      backgroundColor: `rgba(0,0,0,${modalOpacity.value * 0.3})`,
+    };
+  });
+
+  const modalContentStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: modalScale.value }],
+    };
+  });
+
+  const animateModal = (show) => {
+    modalOpacity.value = withTiming(show ? 1 : 0, {
+      duration: 300,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+    });
+    modalScale.value = withSpring(show ? 1 : 0.8, {
+      damping: 15,
+      stiffness: 150,
+    });
   };
+  useEffect(() => {
+    animateModal(showErrorModal || showWarningModal);
+  }, [showErrorModal, showWarningModal]);
+
   const navigateUser = (user: Models.User<Models.Preferences>) => {
     if (user && user.email) {
       if (user.email.toLowerCase().includes("ad")) {
@@ -64,7 +81,8 @@ const LoginForm = () => {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Error", "Please enter both email and password.");
+      setModalMessage("Please enter both email and password.");
+      setShowWarningModal(true);
       return;
     }
 
@@ -79,20 +97,205 @@ const LoginForm = () => {
       const user = await getCurrentUser();
 
       if (user) {
-        navigateUser(user);
+        setLoginSuccess(true);
+        // Wait for animation to complete before navigating
+        setTimeout(() => {
+          navigateUser(user);
+        }, 1500);
       } else {
         throw new Error("Failed to get user information");
       }
     } catch (error) {
       console.error("Login error:", error);
-      Alert.alert(
-        "Login Failed",
-        "Please check your credentials and try again."
-      );
+      setModalMessage("Please check your credentials and try again.");
+      setShowErrorModal(true);
     } finally {
-      setIsLoading(false);
+      // Don't set isLoading to false immediately if login was successful
+      if (!loginSuccess) {
+        setIsLoading(false);
+      }
+    }
+  }; // Added closing bracket here
+
+  const handleResetPassword = () => {
+    if (email.trim() === "") {
+      setModalMessage("Please enter your email in the login form first.");
+      setShowWarningModal(true);
+    } else {
+      setModalMessage(
+        `A confirmation email will be sent to ${email} for verification.`
+      );
+      setShowWarningModal(true);
     }
   };
+
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+
+  const ErrorModal = () => (
+    <Modal
+      visible={showErrorModal}
+      transparent={true}
+      onRequestClose={() => setShowErrorModal(false)}
+    >
+      <Animated.View
+        style={[
+          {
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          },
+          modalContainerStyle,
+        ]}
+      >
+        <Animated.View
+          style={[
+            {
+              backgroundColor: "white",
+              borderRadius: 16,
+              padding: 20,
+              alignItems: "center",
+              width: "80%",
+            },
+            modalContentStyle,
+          ]}
+        >
+          <View
+            style={{
+              backgroundColor: "#ef4444",
+              borderRadius: 40,
+              padding: 10,
+              marginBottom: 20,
+            }}
+          >
+            <Feather name="alert-triangle" size={32} color="white" />
+          </View>
+          <Text
+            style={{
+              fontFamily: "Inter",
+              fontSize: 18,
+              fontWeight: "bold",
+              marginBottom: 10,
+              textAlign: "center",
+            }}
+          >
+            Error
+          </Text>
+          <Text
+            style={{
+              fontFamily: "Karla",
+              fontSize: 16,
+              marginBottom: 20,
+              textAlign: "center",
+            }}
+          >
+            {modalMessage}
+          </Text>
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#ef4444",
+              paddingVertical: 10,
+              paddingHorizontal: 20,
+              borderRadius: 8,
+            }}
+            onPress={() => setShowErrorModal(false)}
+          >
+            <Text
+              style={{
+                color: "white",
+                fontFamily: "Inter",
+                fontWeight: "bold",
+              }}
+            >
+              Try Again
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </Animated.View>
+    </Modal>
+  );
+
+  const WarningModal = () => (
+    <Modal
+      visible={showWarningModal}
+      transparent={true}
+      onRequestClose={() => setShowWarningModal(false)}
+    >
+      <Animated.View
+        style={[
+          {
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          },
+          modalContainerStyle,
+        ]}
+      >
+        <Animated.View
+          style={[
+            {
+              backgroundColor: "white",
+              borderRadius: 16,
+              padding: 20,
+              alignItems: "center",
+              width: "80%",
+            },
+            modalContentStyle,
+          ]}
+        >
+          <View
+            style={{
+              backgroundColor: "#eab308",
+              borderRadius: 40,
+              padding: 10,
+              marginBottom: 20,
+            }}
+          >
+            <Feather name="alert-circle" size={32} color="white" />
+          </View>
+          <Text
+            style={{
+              fontFamily: "Inter",
+              fontSize: 18,
+              fontWeight: "bold",
+              marginBottom: 10,
+              textAlign: "center",
+            }}
+          >
+            Warning
+          </Text>
+          <Text
+            style={{
+              fontFamily: "Karla",
+              fontSize: 16,
+              marginBottom: 20,
+              textAlign: "center",
+            }}
+          >
+            {modalMessage}
+          </Text>
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#eab308",
+              paddingVertical: 10,
+              paddingHorizontal: 20,
+              borderRadius: 8,
+            }}
+            onPress={() => setShowWarningModal(false)}
+          >
+            <Text
+              style={{
+                color: "white",
+                fontFamily: "Inter",
+                fontWeight: "bold",
+              }}
+            >
+              Okay
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </Animated.View>
+    </Modal>
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -126,10 +329,10 @@ const LoginForm = () => {
             EMAIL
           </Text>
           <TextInput
-            className="border shadow-2xl border-white rounded-md p-2 text-lg font-inter bg-gray-100"
+            className="border shadow-2xl border-white rounded-md p-2 text-base font-inter bg-gray-100"
             value={email}
             onChangeText={setEmail}
-            placeholder="email@example.com"
+            placeholder="email@communiTree.com"
             placeholderTextColor="#7D7F88"
             keyboardType="email-address"
             editable={!isLoading}
@@ -142,7 +345,7 @@ const LoginForm = () => {
           </Text>
           <View className="flex-row items-center border border-white rounded-md bg-gray-100">
             <TextInput
-              className="flex-1 p-2 text-lg font-inter"
+              className="flex-1 p-2 text-base font-inter"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -164,7 +367,7 @@ const LoginForm = () => {
             </TouchableOpacity>
           </View>
           <Text className="text-md text-black font-semibold font-inter mt-2">
-            Don't have an account?
+            Don't have an account?{" "}
             <Link href="/signup">
               <Text className="text-blue-600 font-inter">Sign Up</Text>
             </Link>
@@ -178,7 +381,7 @@ const LoginForm = () => {
           onPress={handleLogin}
           disabled={isLoading}
         >
-          <Text className="text-white text-lg font-interfont-semibold">
+          <Text className="text-white text-lg font-inter font-semibold">
             {isLoading ? "Logging in..." : "Log In"}
           </Text>
         </TouchableOpacity>
@@ -191,6 +394,10 @@ const LoginForm = () => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      <ErrorModal />
+      <WarningModal />
+      <LoadingAnimation visible={isLoading} isSuccess={loginSuccess} />
     </SafeAreaView>
   );
 };

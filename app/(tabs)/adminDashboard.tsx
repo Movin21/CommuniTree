@@ -5,8 +5,9 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert
+  Alert,
 } from "react-native";
+import { Picker } from '@react-native-picker/picker';
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeWindStyleSheet } from "nativewind";
@@ -27,7 +28,11 @@ const AdminDashboard = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [id, setid] = useState("");
   const [alertdescription, setalertdescription] = useState("");
+
   const navigation = useNavigation<any>();
+
+  const [severity, setSeverity] = useState("low");
+
 
   useEffect(() => {
     const getComplaints = async () => {
@@ -42,16 +47,17 @@ const AdminDashboard = () => {
     getComplaints();
   }, []);
   const handleSendInterruption = async () => {
-    if (!id || !alertdescription) {
+    if (!id || !alertdescription || !severity) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     try {
-      await createInterruptionAlert(id, alertdescription);
+      await createInterruptionAlert(id, alertdescription,severity);
       Alert.alert("Success", "Interruption alert sent successfully");
       setid("");
       setalertdescription("");
+      setSeverity("low");
     } catch (error) {
       Alert.alert("Error", "Failed to send interruption alert");
     }
@@ -114,13 +120,18 @@ const AdminDashboard = () => {
                   />
                 </View>
                 <View className="flex-1 ml-2">
-                  <Text className="font-bold mb-1 font-inter">severity</Text>
-                  <View className="bg-white p-2 rounded-md flex-row justify-between items-center">
-                    <Text>Select</Text>
-                    <Ionicons name="chevron-down" size={16} color="black" />
-                  </View>
-                </View>
+                <Text className="font-bold mb-1 font-inter ">Severity</Text>
+                <Picker
+                  selectedValue={severity}
+                  onValueChange={(itemValue) => setSeverity(itemValue)}
+                  className="bg-white p-2 rounded-md"
+                >
+                  <Picker.Item label="Low" value="low" />
+                  <Picker.Item label="Medium" value="medium" />
+                  <Picker.Item label="High" value="high" />
+                </Picker>
               </View>
+            </View>
               <View className="mb-4">
                 <Text className="font-bold mb-1 font-inter">Alert Description</Text>
                 <TextInput
