@@ -1,4 +1,4 @@
-/*import React, { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { router } from "expo-router";
 import {
   View,
@@ -118,4 +118,4 @@ const Onboarding = () => {
   );
 };
 
-export default Onboarding;*/
+export default Onboarding;
