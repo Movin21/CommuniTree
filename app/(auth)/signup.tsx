@@ -29,6 +29,8 @@ const SignUpForm = () => {
   const [residenceType, setResidenceType] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errors, setErrors] = useState([]);
   const router = useRouter();
 
   const residenceOptions = [
@@ -38,34 +40,38 @@ const SignUpForm = () => {
   ];
 
   const checkmarkProgress = useSharedValue(0);
+  const crossmarkProgress = useSharedValue(0);
 
-  const checkmarkStyle = useAnimatedStyle(() => {
-    return {
-      height: 24,
-      width: 24,
-      borderRadius: 12,
-      borderWidth: 2,
-      borderColor: "white",
-      justifyContent: "center",
-      alignItems: "center",
-      transform: [
-        {
-          scale: checkmarkProgress.value,
-        },
-      ],
-    };
-  });
+  const checkmarkStyle = useAnimatedStyle(() => ({
+    height: 24,
+    width: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    transform: [{ scale: checkmarkProgress.value }],
+  }));
 
-  const checkmarkPath = useAnimatedStyle(() => {
-    return {
-      height: 12,
-      width: 6,
-      borderRightWidth: 2,
-      borderBottomWidth: 2,
-      borderColor: "white",
-      transform: [{ rotate: "45deg" }, { scale: checkmarkProgress.value }],
-    };
-  });
+  const checkmarkPath = useAnimatedStyle(() => ({
+    height: 12,
+    width: 6,
+    borderRightWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: "white",
+    transform: [{ rotate: "45deg" }, { scale: checkmarkProgress.value }],
+  }));
+
+  const crossmarkStyle = useAnimatedStyle(() => ({
+    height: 24,
+    width: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    transform: [{ scale: crossmarkProgress.value }],
+  }));
 
   useEffect(() => {
     if (showSuccessModal) {
@@ -78,11 +84,166 @@ const SignUpForm = () => {
     }
   }, [showSuccessModal]);
 
-  const handleSubmit = () => {
-    // Handle form submission logic here
-    console.log("Form submitted");
-    setShowSuccessModal(true);
+  useEffect(() => {
+    if (showErrorModal) {
+      crossmarkProgress.value = withTiming(1, {
+        duration: 500,
+        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      });
+    } else {
+      crossmarkProgress.value = 0;
+    }
+  }, [showErrorModal]);
+
+  const validateForm = () => {
+    let errorMessages = [];
+
+    if (!firstName.trim()) {
+      errorMessages.push("First name is required");
+    }
+    if (!lastName.trim()) {
+      errorMessages.push("Last name is required");
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      errorMessages.push("Email is required");
+    } else if (!emailRegex.test(email)) {
+      errorMessages.push("Please enter a valid email");
+    }
+
+    if (!residenceNumber.trim()) {
+      errorMessages.push("Residence number is required");
+    }
+
+    const phoneRegex = /^\d{10}$/;
+    if (!contactNumber.trim()) {
+      errorMessages.push("Contact number is required");
+    } else if (!phoneRegex.test(contactNumber)) {
+      errorMessages.push("Please enter a valid 10-digit phone number");
+    }
+
+    if (!residenceType) {
+      errorMessages.push("Please select a residence type");
+    }
+
+    setErrors(errorMessages);
+    return errorMessages.length === 0;
   };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      setShowSuccessModal(true);
+    } else {
+      setShowErrorModal(true);
+    }
+  };
+
+  const ErrorModal = () => (
+    <Modal
+      visible={showErrorModal}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={() => setShowErrorModal(false)}
+    >
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <View
+          style={{
+            backgroundColor: "white",
+            borderRadius: 16,
+            padding: 20,
+            alignItems: "center",
+            width: "80%",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#ef4444",
+              borderRadius: 40,
+              padding: 10,
+              marginBottom: 20,
+            }}
+          >
+            <Animated.View style={crossmarkStyle}>
+              <View
+                style={{
+                  width: 16,
+                  height: 2,
+                  backgroundColor: "white",
+                  position: "absolute",
+                  transform: [{ rotate: "45deg" }],
+                }}
+              />
+              <View
+                style={{
+                  width: 16,
+                  height: 2,
+                  backgroundColor: "white",
+                  position: "absolute",
+                  transform: [{ rotate: "-45deg" }],
+                }}
+              />
+            </Animated.View>
+          </View>
+          <Text
+            style={{
+              fontFamily: "Inter",
+              fontSize: 18,
+              fontWeight: "bold",
+              marginBottom: 10,
+              textAlign: "center",
+              color: "#ef4444",
+            }}
+          >
+            Validation Error
+          </Text>
+          <ScrollView style={{ maxHeight: 150 }}>
+            {errors.map((error, index) => (
+              <Text
+                key={index}
+                style={{
+                  fontFamily: "Karla",
+                  fontSize: 16,
+                  marginBottom: 8,
+                  textAlign: "center",
+                  color: "#4b5563",
+                }}
+              >
+                • {error}
+              </Text>
+            ))}
+          </ScrollView>
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#ef4444",
+              paddingVertical: 10,
+              paddingHorizontal: 20,
+              borderRadius: 8,
+              marginTop: 20,
+            }}
+            onPress={() => setShowErrorModal(false)}
+          >
+            <Text
+              style={{
+                color: "white",
+                fontFamily: "Inter",
+                fontWeight: "bold",
+              }}
+            >
+              Close
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
 
   const CustomDropdown = () => (
     <Modal
@@ -238,8 +399,6 @@ const SignUpForm = () => {
               <TextInput
                 style={{
                   fontFamily: "Karla",
-                  borderColor: "white",
-                  borderWidth: 1,
                   borderRadius: 8,
                   padding: 12,
                   backgroundColor: "#F3F4F6",
@@ -254,8 +413,6 @@ const SignUpForm = () => {
               <TextInput
                 style={{
                   fontFamily: "Karla",
-                  borderColor: "white",
-                  borderWidth: 1,
                   borderRadius: 8,
                   padding: 12,
                   backgroundColor: "#F3F4F6",
@@ -272,15 +429,13 @@ const SignUpForm = () => {
             <TextInput
               style={{
                 fontFamily: "Karla",
-                borderColor: "white",
-                borderWidth: 1,
                 borderRadius: 8,
                 padding: 12,
                 backgroundColor: "#F3F4F6",
               }}
               value={email}
               onChangeText={setEmail}
-              placeholder="yourmail@shrestha.com"
+              placeholder="yourmail@communiTree.com"
               placeholderTextColor="black"
               keyboardType="email-address"
             />
@@ -290,8 +445,6 @@ const SignUpForm = () => {
             <TextInput
               style={{
                 fontFamily: "Karla",
-                borderColor: "white",
-                borderWidth: 1,
                 borderRadius: 8,
                 padding: 12,
                 backgroundColor: "#F3F4F6",
@@ -307,8 +460,6 @@ const SignUpForm = () => {
             <TextInput
               style={{
                 fontFamily: "Karla",
-                borderColor: "white",
-                borderWidth: 1,
                 borderRadius: 8,
                 padding: 12,
                 backgroundColor: "#F3F4F6",
@@ -327,8 +478,6 @@ const SignUpForm = () => {
             </Text>
             <TouchableOpacity
               style={{
-                borderColor: "white",
-                borderWidth: 1,
                 borderRadius: 8,
                 padding: 12,
                 backgroundColor: "#F3F4F6",
@@ -370,7 +519,7 @@ const SignUpForm = () => {
             </Text>
           </View>
           <View>
-            <Text className="text-sm text-center mt-14 text-gray-600 font-inter">
+            <Text className="text-sm text-center mt-10 text-gray-600 font-inter">
               By Submitting, I agree to communitree{"\n"}
               <Link href="/TermsOfServiceScreen">
                 <Text className="text-primaryColor underline">
@@ -383,6 +532,7 @@ const SignUpForm = () => {
       </KeyboardAvoidingView>
       <CustomDropdown />
       <SuccessModal />
+      <ErrorModal />
     </SafeAreaView>
   );
 };

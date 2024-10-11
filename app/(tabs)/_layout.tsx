@@ -48,6 +48,20 @@ const TabsLayout: React.FC = () => {
         }}
       />
       <Tabs.Screen
+        name="adminDashboard"
+        options={{
+          title: "Admin Dashboard",
+          ...commonHeaderOptions,
+        }}
+      />
+      <Tabs.Screen
+        name="notification"
+        options={{
+          title: "Notifications",
+          ...commonHeaderOptions,
+        }}
+      />
+      <Tabs.Screen
         name="reserve"
         options={{
           title: "Reservations",
