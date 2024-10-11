@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-
-interface AddEventFormProps {
-  onSubmit: (eventData: EventData) => void;
-  onBack: () => void;
-}
+import { createEvent } from '@/lib/appwrite';
 
 interface EventData {
   title: string;
@@ -18,7 +14,7 @@ interface EventData {
   description: string;
 }
 
-const AddEventForm: React.FC<AddEventFormProps> = ({ onSubmit, onBack }) => {
+const AddEventForm: React.FC = () => {
   const [eventData, setEventData] = useState<EventData>({
     title: '',
     venue: '',
@@ -37,20 +33,32 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ onSubmit, onBack }) => {
     setEventData(prevData => ({ ...prevData, [name]: value }));
   };
 
-  const handleSubmit = () => {
-    onSubmit(eventData);
+  const handleSubmit = async () => {
+    try {
+      await createEvent(eventData);
+      Alert.alert("Success", "Your Event has been added successfully!");
+      // Reset form after successful submission
+      setEventData({
+        title: '',
+        venue: '',
+        contactInformation: '',
+        date: new Date(),
+        fromTime: new Date(),
+        toTime: new Date(),
+        description: '',
+      });
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        "There was an error submitting your event. Please try again."
+      );
+    }
   };
+
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="black" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Add an Event</Text>
-        </View>
-
         <View style={styles.form}>
           <TextInput
             style={styles.input}
